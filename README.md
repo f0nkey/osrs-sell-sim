@@ -9,26 +9,22 @@ Go to: https://f0nkey.github.io/osrs-sell-sim/
 ## Synopsis
 
 Stores in Old School RuneScape pay less for each additional copy of an item you sell them.
-The price drops by a fixed percentage of the item’s base value with each sale (typically 3% for standard stores).
 
 If you sell 3 magic logs, without hopping worlds, the buy price will drop by 3% for each additional log sold.
 1. Sell 1st log, get 128 gp
 2. Sell 2nd log, get 118 gp
 3. Sell 3rd log, get 108 gp
 
-Total Profit: 354
+**Total Profit: 354**
 
-But if you hop to a new world, the price resets to the base value the shop buys it for.
+But if you hop to a new world each sell, the price resets to the base value.
 1. Sell 1st log, get 128 gp
 2. Hop to a new world
 3. Sell 2nd log, get 128 gp
 4. Hop to a new world
 5. Sell 3rd log, get 128 gp
 
-Total Profit: 384
+**Total Profit: 384**
 
-Hopping to a new world with fresh stock resets the price. 
-
-This calculator estimates profit based on the number of hops.
-
+This calculator estimates profit based on the number of hops and amount of items sold each hop.
 It also scans shop data from the wiki's [storeline bucket](https://oldschool.runescape.wiki/w/Bucket:Storeline), to detect special pricing from specialty shops.
