@@ -40,37 +40,7 @@ button { cursor: pointer; }
   margin: 0 0 8px;
 }
 header h1 { margin: 0; font-size: 1.7rem; letter-spacing: 0.01em; }
-.title-row a { color: var(--gold); font-weight: 650; text-underline-offset: 2px; }
-.more {
-  margin: 0;
-  max-width: 102ch;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-.more summary {
-  cursor: pointer;
-  padding: 10px 12px;
-  font-weight: 650;
-  list-style: none;
-}
-.more summary::-webkit-details-marker { display: none; }
-.more summary::before {
-  content: "▸";
-  display: inline-block;
-  width: 1.1em;
-  color: var(--gold);
-}
-.more[open] summary::before { content: "▾"; }
-.more p { margin: 0; padding: 0 12px 12px 2.2em; color: var(--muted); }
-.more ul {
-  margin: 0;
-  padding: 0 12px 12px 3.15em;
-  color: var(--muted);
-  list-style: disc;
-}
-.more li { margin: 2px 0; padding-left: 0.2em; }
-.more li::marker { color: var(--gold); }
+.title-row a, .what { color: var(--gold); font-weight: 650; text-underline-offset: 2px; }
 .panel {
   margin-top: 18px;
   background: var(--panel);
@@ -328,23 +298,7 @@ footer a { color: var(--gold); }
       <h1>OSRS Shop Hop Sell Calculator</h1>
       <a href="https://github.com/f0nkey/osrs-sell-sim">GitHub</a>
     </div>
-    <details class="more">
-      <summary>What is this?</summary>
-      <p>General stores in Old School RuneScape pay less for each additional copy of an item you sell them.</p>
-
-      <p>The price drops by a fixed percentage of the item’s base value with each sale (typically 3% for standard stores)</p>
-
-      <p>For magic logs, as an example:</p>
-      <ul>
-        <li>1st sale: 128 gp</li>
-        <li>2nd sale: 118 gp</li>
-        <li>3rd sale: 108 gp</li>
-        <li>… continuing down to a minimum of 32 gp</li>
-      </ul>
-
-      <p>Hopping to a new world with fresh stock resets the price. This calculator estimates profit based on the number of hops.</p>
-      <p>Most of the time, the Grand Exchange will be the best. This site is more suited for Ironman accounts that cannot access the Grand Exchange.</p>
-    </details>
+    <a class="what" href="https://github.com/f0nkey/osrs-sell-sim#osrs-shop-hop-sell-calculator">What is this?</a>
   </header>
 
   <section class="panel" aria-labelledby="item-heading">
@@ -376,7 +330,7 @@ footer a { color: var(--gold); }
         <div class="label-with-help">
           <label for="stock">Current stock</label>
           <button type="button" class="help" aria-label="About current stock" aria-describedby="stock-tip">?
-            <span class="tip" id="stock-tip" role="tooltip">If the shop already has some of this item, it pays less for yours. Each one in stock lowers the price by that shop's change percent, down to the 10% floor. Every hop starts from this same stock.</span>
+            <span class="tip" id="stock-tip" role="tooltip">If a general store already has some of this item, it pays less for yours. Each one in stock lowers the price by that shop's change percent, down to the 10% floor. Every hop starts from this same stock. A shop that lists the item uses the stock from the wiki instead of this number.</span>
           </button>
         </div>
         <input id="stock" type="text" inputmode="numeric" value="0" autocomplete="off">
@@ -402,7 +356,8 @@ footer a { color: var(--gold); }
   </section>
 
   <section class="panel" aria-labelledby="general-heading">
-    <h2 id="general-heading">General stores</h2>
+    <h2 id="general-heading">Shops</h2>
+    <p id="shop-status" class="note" role="status" hidden></p>
     <div class="toolbar">
       <div class="grow">
         <label for="shop-filter">Filter shops</label>
@@ -416,17 +371,19 @@ footer a { color: var(--gold); }
         <tbody id="shop-body"></tbody>
       </table>
     </div>
-    <p class="note">This comparison assumes the item is not on the shop's default stock. At stock 0, the first coin amount is the buy percent. Void Knight General Store and Jennifer's General Supplies share stock in game.</p>
+    <p class="note">General-store rows assume the item is not on that shop's default stock. At stock 0, the first coin amount is the buy percent. A row with a stock count starts from the stock listed on the wiki. Void Knight General Store and Jennifer's General Supplies share stock in game.</p>
   </section>
 
   <footer>
-    <p>Sell prices follow the OSRS Wiki shop calculator. General-store rates are the wiki's general store list. Item value and alchemy come from the live mapping.</p>
+    <p>Sell prices follow the OSRS Wiki shop calculator. General-store rates are the wiki's general store list. Shops that stock the selected item are loaded from the wiki. Item value and alchemy come from the live mapping.</p>
     <p>
       <a href="https://oldschool.runescape.wiki/w/Module:Shop_calculator">Module:Shop calculator</a>
       ·
       <a href="https://oldschool.runescape.wiki/w/Value#Actions_that_Turn_Items_to_Coins">Value</a>
       ·
       <a href="https://oldschool.runescape.wiki/w/General_store">General store</a>
+      ·
+      <a href="https://oldschool.runescape.wiki/w/Bucket:Storeline">Store lines</a>
       ·
       <a href="https://oldschool.runescape.wiki/w/Calculator:Shop_calculator">Shop calculator</a>
     </p>
@@ -452,7 +409,7 @@ const WIKI_TITLES = {
 };
 
 function shopUrl(shop) {
-  const title = WIKI_TITLES[shop.name] || shop.name;
+  const title = shop.wikiTitle || WIKI_TITLES[shop.name] || shop.name;
   return "https://oldschool.runescape.wiki/w/" + encodeURIComponent(title).replace(/%20/g, "_");
 }
 
@@ -520,6 +477,213 @@ const SHOPS = [
   { name: "West Ardougne General Store", location: "West Ardougne", members: true, buy: 55, delta: 2 },
   { name: "Zanaris General Store", location: "Zanaris", members: true, buy: 40, delta: 3 }
 ];
+
+SHOPS.forEach(function (shop) {
+  shop.key = "general:" + shop.name;
+});
+
+const BUCKET_API = "https://oldschool.runescape.wiki/api.php";
+const STORELINE_FIELDS = [
+  "page_name",
+  "page_name_sub",
+  "sold_by",
+  "sold_item",
+  "store_buy_price",
+  "store_sell_price",
+  "store_currency",
+  "store_delta",
+  "store_stock",
+  "store_buy_multiplier",
+  "store_sell_multiplier",
+  "restock_time",
+  "store_notes",
+  "sold_item_json"
+];
+
+let shopListings = [];
+let shopListingName = "";
+let shopListingState = "idle";
+let shopListingSkipped = "";
+let shopFetchToken = 0;
+
+function luaQuote(value) {
+  return "'" + String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'";
+}
+
+function storelineQuery(itemName) {
+  const select = STORELINE_FIELDS.map(function (field) { return "'" + field + "'"; }).join(",");
+  return "bucket('storeline').select(" + select + ").where('sold_item', " + luaQuote(itemName) + ").limit(500).run()";
+}
+
+function plainShopName(name) {
+  return String(name || "").replace(/\.+$/, "").trim().toLowerCase();
+}
+
+function wikiPlain(text) {
+  return String(text || "")
+    .replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, "$2")
+    .replace(/\[\[([^\]]+)\]\]/g, "$1")
+    .replace(/'{2,}/g, "")
+    .trim();
+}
+
+function tenthsToPercent(raw) {
+  if (raw === null || raw === undefined || String(raw).trim() === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return n / 10;
+}
+
+function parseListedStock(raw) {
+  const text = String(raw == null ? "" : raw).trim();
+  if (text === "∞" || text.toLowerCase() === "inf") return Infinity;
+  if (!/^\d+$/.test(text)) return null;
+  return Number(text);
+}
+
+function shopBuysRow(row) {
+  const price = String(row.store_buy_price == null ? "" : row.store_buy_price).trim();
+  if (!price || price.toUpperCase() === "N/A") return false;
+  return tenthsToPercent(row.store_buy_multiplier) !== null;
+}
+
+function parseStorelines(rows) {
+  const shops = [];
+  const seen = new Set();
+  let skipped = 0;
+  rows.forEach(function (row) {
+    if (!shopBuysRow(row)) {
+      skipped += 1;
+      return;
+    }
+    const buy = tenthsToPercent(row.store_buy_multiplier);
+    const deltaRaw = tenthsToPercent(row.store_delta);
+    const stock = parseListedStock(row.store_stock);
+    const page = String(row.page_name || row.sold_by || "").trim();
+    if (buy === null || deltaRaw === null || stock === null || !page) {
+      skipped += 1;
+      return;
+    }
+    const note = String(row.store_notes || "").trim();
+    const currency = String(row.store_currency || "Coins").trim() || "Coins";
+    const infinite = stock === Infinity;
+    const delta = infinite ? 0 : deltaRaw;
+    let location = "";
+    if (typeof row.sold_item_json === "string" && row.sold_item_json) {
+      try {
+        const parsed = JSON.parse(row.sold_item_json);
+        if (parsed && parsed.Location) location = wikiPlain(parsed.Location);
+      } catch (err) {
+        location = "";
+      }
+    }
+    const name = String(row.sold_by || page).trim() || page;
+    const key = ["listed", page, note, String(buy), String(delta), String(stock), currency].join("\u001f");
+    if (seen.has(key)) return;
+    seen.add(key);
+    shops.push({
+      key: key,
+      name: name,
+      wikiTitle: page,
+      location: location,
+      buy: buy,
+      delta: delta,
+      baseStock: infinite ? 0 : stock,
+      listed: true,
+      unlimited: infinite,
+      note: note,
+      currency: currency,
+      league: /league/i.test(note),
+      floorNote: buy < 10 && currency === "Coins"
+    });
+  });
+  let noteText = "";
+  if (skipped === 1) noteText = "1 listing does not buy this item.";
+  else if (skipped > 1) noteText = formatCoins(skipped) + " listings do not buy this item.";
+  if (rows.length >= 500) {
+    noteText = (noteText + " The wiki returned 500 rows, so some shops may be missing.").trim();
+  }
+  return { shops: shops, note: noteText };
+}
+
+function coveredShopNames() {
+  const covered = new Set();
+  shopListings.forEach(function (shop) {
+    if (shop.league) return;
+    covered.add(plainShopName(shop.name));
+    covered.add(plainShopName(shop.wikiTitle));
+  });
+  return covered;
+}
+
+function generalStoreCovered(shop, covered) {
+  if (covered.has(plainShopName(shop.name))) return true;
+  const title = WIKI_TITLES[shop.name];
+  return Boolean(title) && covered.has(plainShopName(title));
+}
+
+function clearShopLookup() {
+  shopFetchToken += 1;
+  shopListingName = "";
+  shopListings = [];
+  shopListingState = "idle";
+  shopListingSkipped = "";
+}
+
+function beginShopLookup(item) {
+  if (!item || !item.name) return;
+  if (shopListingName === item.name && (shopListingState === "loading" || shopListingState === "ready")) return;
+  const token = ++shopFetchToken;
+  shopListingName = item.name;
+  shopListings = [];
+  shopListingState = "loading";
+  shopListingSkipped = "";
+  fetchShopListings(item.name, token);
+}
+
+async function fetchShopListings(itemName, token) {
+  try {
+    const url = BUCKET_API + "?action=bucket&format=json&query=" + encodeURIComponent(storelineQuery(itemName));
+    const response = await fetch(url);
+    if (token !== shopFetchToken) return;
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    if (token !== shopFetchToken) return;
+    if (!data || data.error || !Array.isArray(data.bucket)) throw new Error("Shop query failed");
+    const parsed = parseStorelines(data.bucket);
+    shopListings = parsed.shops;
+    shopListingSkipped = parsed.note;
+    shopListingState = "ready";
+  } catch (err) {
+    if (token !== shopFetchToken) return;
+    shopListings = [];
+    shopListingSkipped = "";
+    shopListingState = "error";
+  }
+  updateAll();
+}
+
+function shopStatusText() {
+  if (!selected || !shopListingName) return "";
+  const name = shopListingName;
+  if (shopListingState === "loading") return "Loading shops that stock " + name + "…";
+  if (shopListingState === "error") return "Could not load shop listings for " + name + ". General stores are still listed.";
+  if (shopListingState !== "ready") return "";
+  const count = shopListings.length;
+  let text;
+  if (count === 0) text = "No shop lists a buy price for " + name + ". General stores still buy it.";
+  else if (count === 1) text = "1 shop lists a buy price for " + name + ". That row starts from the stock on the wiki.";
+  else text = formatCoins(count) + " shops list a buy price for " + name + ". Those rows start from the stock on the wiki.";
+  if (shopListingSkipped) text += " " + shopListingSkipped;
+  return text;
+}
+
+function updateShopStatus() {
+  const el = document.getElementById("shop-status");
+  const text = shopStatusText();
+  el.textContent = text;
+  el.hidden = text === "";
+}
 
 function truncate(num) {
   return Math.trunc(num + 0.000001);
@@ -930,6 +1094,7 @@ function chooseItem(item) {
   resultsEl.hidden = true;
   searchInput.setAttribute("aria-expanded", "false");
   activeIndex = -1;
+  beginShopLookup(item);
   updateAll();
 }
 
@@ -949,6 +1114,11 @@ function hopLabel(count) {
 
 function coinNoun(count) {
   return formatCoins(count) + (count === 1 ? " coin" : " coins");
+}
+
+function moneyNoun(count, currency) {
+  if (!currency || currency === "Coins") return coinNoun(count);
+  return formatCoins(count) + " " + currency;
 }
 
 function itemsEachHop(entry) {
@@ -1105,7 +1275,7 @@ function svgEl(name, attrs) {
   return el;
 }
 
-function renderLineChart(series, hopFrom, hopTo) {
+function renderLineChart(series, hopFrom, hopTo, currency) {
   const viewW = 760;
   const viewH = 286;
   const padR = 18;
@@ -1192,7 +1362,7 @@ function renderLineChart(series, hopFrom, hopTo) {
     "font-size": "12",
     "text-anchor": "start"
   });
-  yTitle.textContent = "Total profit";
+  yTitle.textContent = currency && currency !== "Coins" ? "Total profit (" + currency + ")" : "Total profit";
   svg.append(yTitle);
   const xTitle = svgEl("text", {
     x: String(padL + plotW / 2),
@@ -1288,7 +1458,7 @@ function renderLineChart(series, hopFrom, hopTo) {
       active = index;
       tipHops.textContent = hopLabel(entry.hops);
       tipItems.textContent = itemsEachHop(entry);
-      tipProfit.textContent = coinNoun(entry.total);
+      tipProfit.textContent = moneyNoun(entry.total, currency);
     }
     tip.hidden = false;
     const box = wrap.getBoundingClientRect();
@@ -1329,7 +1499,7 @@ function renderLineChart(series, hopFrom, hopTo) {
 function fillDetail(container, row) {
   container.replaceChildren();
   const heading = document.createElement("h3");
-  heading.textContent = row.shop.name;
+  heading.textContent = row.shop.note ? row.shop.name + " " + row.shop.note : row.shop.name;
   container.append(heading);
   const series = ensureSeries(row);
   if (!series) {
@@ -1337,11 +1507,11 @@ function fillDetail(container, row) {
     err.textContent = row.seriesError || "That sale is too large to total exactly.";
     container.append(err);
   } else if (series.length) {
-    container.append(renderLineChart(series, row.hopFrom, row.hopTo));
+    container.append(renderLineChart(series, row.hopFrom, row.hopTo, row.shop.currency));
   }
   if (row.quote.hitFloor) {
     const floor = document.createElement("p");
-    floor.textContent = "The 10% floor was hit at " + formatCoins(row.quote.lower) + " coins.";
+    floor.textContent = "The 10% floor was hit at " + moneyNoun(row.quote.lower, row.shop.currency) + ".";
     container.append(floor);
   }
   container.hidden = false;
@@ -1430,7 +1600,9 @@ function compareRows(a, b) {
   else diff = a.hopToCoins - b.hopToCoins;
   if (diff !== 0) return diff * sortDir;
   if (sortKey !== "change" && a.rate.delta !== b.rate.delta) return a.rate.delta - b.rate.delta;
-  return a.shop.name.localeCompare(b.shop.name);
+  const nameDiff = a.shop.name.localeCompare(b.shop.name);
+  if (nameDiff !== 0) return nameDiff;
+  return String(a.shop.key).localeCompare(String(b.shop.key));
 }
 
 function addSplitCell(tr, spread) {
@@ -1446,20 +1618,40 @@ function addSplitCell(tr, spread) {
   tr.append(td);
 }
 
+function shopsForSale() {
+  const covered = coveredShopNames();
+  const shops = [];
+  SHOPS.forEach(function (shop) {
+    if (generalStoreCovered(shop, covered)) return;
+    shops.push(shop);
+  });
+  shopListings.forEach(function (shop) { shops.push(shop); });
+  return shops;
+}
+
 function renderGeneral(shared) {
   const filter = document.getElementById("shop-filter").value.trim().toLowerCase();
   const rows = [];
   let overflow = "";
-  SHOPS.forEach(function (shop) {
-    if (filter && (shop.name + " " + shop.location).toLowerCase().indexOf(filter) === -1) return;
+  shopsForSale().forEach(function (shop) {
+    const haystack = (shop.name + " " + (shop.location || "") + " " + (shop.note || "") + " " + (shop.currency || "")).toLowerCase();
+    if (filter && haystack.indexOf(filter) === -1) return;
     const rate = shopRate(shop, shared.gloves);
-    const priceOpts = {
-      value: shared.value,
-      buyPercent: rate.buy,
-      deltaPercent: rate.delta,
-      baseStock: 0,
-      currentStock: shared.stock
-    };
+    const priceOpts = shop.listed
+      ? {
+        value: shared.value,
+        buyPercent: rate.buy,
+        deltaPercent: rate.delta,
+        baseStock: shop.baseStock,
+        currentStock: shop.baseStock
+      }
+      : {
+        value: shared.value,
+        buyPercent: rate.buy,
+        deltaPercent: rate.delta,
+        baseStock: 0,
+        currentStock: shared.stock
+      };
     const sale = buildSale(priceOpts, shared.quantity, shared.hops);
     if (sale.error) {
       overflow = sale.error;
@@ -1505,35 +1697,38 @@ function paintTable(resetSelection) {
   rows.forEach(function (row) {
     if (row.hopToCoins > bestCoins) bestCoins = row.hopToCoins;
   });
+  let bestKey = null;
   let bestName = null;
   let bestDelta = Infinity;
   rows.forEach(function (row) {
     if (row.hopToCoins !== bestCoins) return;
-    const earlierName = bestName !== null && row.shop.name.localeCompare(bestName) < 0;
-    if (bestName === null || row.rate.delta < bestDelta || (row.rate.delta === bestDelta && earlierName)) {
+    const nameDiff = bestName === null ? 1 : row.shop.name.localeCompare(bestName);
+    const earlier = bestKey === null || nameDiff < 0 || (nameDiff === 0 && String(row.shop.key).localeCompare(String(bestKey)) < 0);
+    if (bestKey === null || row.rate.delta < bestDelta || (row.rate.delta === bestDelta && earlier)) {
+      bestKey = row.shop.key;
       bestName = row.shop.name;
       bestDelta = row.rate.delta;
     }
   });
   const previous = openShop;
-  const stillVisible = rows.some(function (row) { return row.shop.name === previous; });
-  if (resetSelection || !stillVisible) openShop = bestName;
+  const stillVisible = rows.some(function (row) { return row.shop.key === previous; });
+  if (resetSelection || !stillVisible) openShop = bestKey;
   quotes = new Map();
   renderHead();
   shopBody.replaceChildren();
   rows.forEach(function (row) {
-    quotes.set(row.shop.name, row);
+    quotes.set(row.shop.key, row);
     const tr = document.createElement("tr");
-    tr.className = row.shop.name === openShop ? "selected" : "";
+    tr.className = row.shop.key === openShop ? "selected" : "";
     tr.tabIndex = 0;
-    tr.dataset.shop = row.shop.name;
-    tr.setAttribute("aria-selected", row.shop.name === openShop ? "true" : "false");
-    tr.addEventListener("click", function () { selectShop(row.shop.name, true); });
+    tr.dataset.shop = row.shop.key;
+    tr.setAttribute("aria-selected", row.shop.key === openShop ? "true" : "false");
+    tr.addEventListener("click", function () { selectShop(row.shop.key, true); });
     tr.addEventListener("keydown", function (event) {
       if (event.target.closest("a")) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      selectShop(row.shop.name, true);
+      selectShop(row.shop.key, true);
     });
     const nameTd = document.createElement("td");
     const nameBtn = document.createElement("a");
@@ -1545,6 +1740,16 @@ function paintTable(resetSelection) {
     nameBtn.title = "Wiki page for " + row.shop.name;
     nameBtn.addEventListener("click", function (event) { event.stopPropagation(); });
     nameTd.append(nameBtn);
+    if (row.shop.listed) {
+      const stockFlag = document.createElement("span");
+      stockFlag.className = "floor-flag";
+      const bits = [];
+      bits.push(row.shop.unlimited ? "Unlimited stock" : "Stocks " + formatCoins(row.shop.baseStock));
+      if (row.shop.note) bits.push(row.shop.note);
+      if (row.shop.currency && row.shop.currency !== "Coins") bits.push(row.shop.currency);
+      stockFlag.textContent = bits.join(" · ");
+      nameTd.append(stockFlag);
+    }
     if (row.shop.floorNote) {
       const flag = document.createElement("span");
       flag.className = "floor-flag";
@@ -1575,12 +1780,12 @@ function addCell(tr, text) {
   tr.append(td);
 }
 
-function selectShop(name, scroll) {
-  const row = quotes.get(name);
+function selectShop(key, scroll) {
+  const row = quotes.get(key);
   if (!row) return;
-  openShop = name;
+  openShop = key;
   shopBody.querySelectorAll("tr").forEach(function (tr) {
-    const on = tr.dataset.shop === name;
+    const on = tr.dataset.shop === key;
     tr.classList.toggle("selected", on);
     tr.setAttribute("aria-selected", on ? "true" : "false");
   });
@@ -1590,6 +1795,7 @@ function selectShop(name, scroll) {
 
 function updateAll() {
   renderPicked();
+  updateShopStatus();
   const shared = readShared();
   if (shared.empty) {
     formError.textContent = "";
@@ -1626,7 +1832,13 @@ async function loadCatalog() {
     if (selected) {
       const fresh = catalog.find(function (item) { return item.id === selected.id; });
       selected = fresh || null;
-      if (!selected) searchInput.value = "";
+      if (!selected) {
+        searchInput.value = "";
+        clearShopLookup();
+      } else if (fresh.name !== shopListingName) {
+        clearShopLookup();
+        beginShopLookup(fresh);
+      }
     }
   } catch (err) {
     catalog = [];
@@ -1640,7 +1852,10 @@ async function loadCatalog() {
 
 
 searchInput.addEventListener("input", function () {
-  if (!selected || searchInput.value !== selected.name) selected = null;
+  if (!selected || searchInput.value !== selected.name) {
+    if (selected || shopListingState !== "idle") clearShopLookup();
+    selected = null;
+  }
   activeIndex = -1;
   renderResults();
   scheduleUpdate();
