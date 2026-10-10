@@ -15,7 +15,7 @@ If you sell 3 magic logs, without hopping worlds, the buy price will drop by 3% 
 2. Sell 2nd log, get 118 gp
 3. Sell 3rd log, get 108 gp
 
-**Total Profit: 354**
+**Total Profit: 354 gp**
 
 But if you hop to a new world each sell, the price resets to the base value.
 1. Sell 1st log, get 128 gp
@@ -24,7 +24,7 @@ But if you hop to a new world each sell, the price resets to the base value.
 4. Hop to a new world
 5. Sell 3rd log, get 128 gp
 
-**Total Profit: 384**
+**Total Profit: 384 gp**
 
 This calculator estimates profit based on the number of hops and amount of items sold each hop.
 It also scans shop data from the wiki's [storeline bucket](https://oldschool.runescape.wiki/w/Bucket:Storeline), to detect special pricing from specialty shops.
