@@ -12,16 +12,18 @@ Stores in Old School RuneScape pay less for each additional copy of an item you 
 The price drops by a fixed percentage of the item’s base value with each sale (typically 3% for standard stores).
 
 If you sell 3 magic logs, without hopping worlds, the buy price will drop by 3% for each additional log sold.
-- 1st sale: 128 gp
-- 2nd sale: 118 gp
-- 3rd sale: 108 gp
+1. Sell 1st log, get 128 gp
+2. Sell 2nd log, get 118 gp
+3. Sell 3rd log, get 108 gp
 
 Total Profit: 354
 
 But if you hop to a new world, the price resets to the base value the shop buys it for.
-- 1st sale: 128
-- 2nd sale: 128
-- 3rd sale: 128
+1. Sell 1st log, get 128 gp
+2. Hop to a new world
+3. Sell 2nd log, get 128 gp
+4. Hop to a new world
+5. Sell 3rd log, get 128 gp
 
 Total Profit: 384
 
