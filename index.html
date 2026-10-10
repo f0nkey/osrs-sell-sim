@@ -32,7 +32,15 @@ button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; }
-header h1 { margin: 0 0 8px; font-size: 1.7rem; letter-spacing: 0.01em; }
+.title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 8px;
+}
+header h1 { margin: 0; font-size: 1.7rem; letter-spacing: 0.01em; }
+.title-row a { color: var(--gold); font-weight: 650; text-underline-offset: 2px; }
 .more {
   margin: 0;
   max-width: 102ch;
@@ -316,7 +324,10 @@ footer a { color: var(--gold); }
 <body>
 <div class="wrap">
   <header>
-    <h1>OSRS Shop Hop Sell Calculator</h1>
+    <div class="title-row">
+      <h1>OSRS Shop Hop Sell Calculator</h1>
+      <a href="https://github.com/f0nkey/osrs-sell-sim">GitHub</a>
+    </div>
     <details class="more">
       <summary>What is this?</summary>
       <p>General stores in Old School RuneScape pay less for each additional copy of an item you sell them.</p>
