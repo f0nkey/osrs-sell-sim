@@ -20,7 +20,7 @@ For example, the buy price drops by 3% for each additional **magic log** sold.
 **Total Profit: 354 gp**
 
 
-Hop to a new world after each, and the price resets to the base value.
+Hop to a new world after each sale, and the price resets to the base value.
 1. Sell 1st log, get **128 gp**
 2. Hop to a new world
 3. Sell 2nd log, get **128 gp**
