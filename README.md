@@ -1,7 +1,8 @@
 # OSRS Shop Hop Sell Calculator
 
 OSRSSHSC helps maximize your profit from selling bulk items in Old School RuneScape shops.
-And also figuring out which shops pay the most for your items.
+
+And shows which shops pay the most for your items.
 
 Go to: https://f0nkey.github.io/osrs-sell-sim/
 
@@ -28,7 +29,8 @@ But if you hop to a new world each sell, the price resets to the base value.
 **Total Profit: 384 gp**
 
 This calculator estimates profit based on the number of hops and amount of items sold each hop.
-It also scans shop data from the wiki's [storeline bucket](https://oldschool.runescape.wiki/w/Bucket:Storeline), to detect special pricing from specialty shops.
+
+And scans shop data from the wiki's [storeline bucket](https://oldschool.runescape.wiki/w/Bucket:Storeline), detecting special pricing from specialty shops.
 
 ## Disclaimer
 
