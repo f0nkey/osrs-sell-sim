@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSRSSHSC</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #14110e;
+  --panel: #231e19;
+  --panel-2: #2c261f;
+  --sticky: #231e19;
+  --line: #4a3f33;
+  --text: #f4ecdc;
+  --muted: #cbbba4;
+  --gold: #f0c96a;
+  --gold-dim: #a6843d;
+  --danger: #ffb4a8;
+  --ok: #b7d7a8;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; }
+header h1 { margin: 0 0 8px; font-size: 1.7rem; letter-spacing: 0.01em; }
+.more {
+  margin: 0;
+  max-width: 102ch;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.more summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 650;
+  list-style: none;
+}
+.more summary::-webkit-details-marker { display: none; }
+.more summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1.1em;
+  color: var(--gold);
+}
+.more[open] summary::before { content: "▾"; }
+.more p { margin: 0; padding: 0 12px 12px 2.2em; color: var(--muted); }
+.more ul {
+  margin: 0;
+  padding: 0 12px 12px 3.15em;
+  color: var(--muted);
+  list-style: disc;
+}
+.more li { margin: 2px 0; padding-left: 0.2em; }
+.more li::marker { color: var(--gold); }
+.panel {
+  margin-top: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.panel h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.status { min-height: 1.4em; color: var(--muted); margin: 8px 0 0; }
+.status.error, .error { color: var(--danger); }
+.row { display: flex; gap: 8px; align-items: end; }
+.search-wrap { position: relative; flex: 1; }
+label { display: block; font-size: 0.86rem; color: var(--muted); margin-bottom: 4px; }
+input[type="text"], input[type="search"] {
+  width: 100%;
+  background: #120e0b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+.hint { margin: 6px 0 0; color: var(--muted); font-size: 0.86rem; }
+.icon-btn, .segment button, .text-btn {
+  background: #120e0b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.segment { display: flex; flex-wrap: wrap; gap: 6px; }
+.segment button[aria-pressed="true"], .text-btn[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.results {
+  position: absolute;
+  z-index: 5;
+  left: 0; right: 0; top: calc(100% + 4px);
+  background: #1b1612;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 280px;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+.results[hidden] { display: none; }
+.results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(74, 63, 51, 0.6);
+  padding: 8px 10px;
+  border-radius: 0;
+}
+.results button.active, .results button:hover { background: #342b22; }
+.results .meta { color: var(--muted); font-size: 0.82rem; }
+.picked {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--panel-2);
+  border-radius: 10px;
+}
+.picked[hidden] { display: none; }
+.picked img { width: 36px; height: 36px; object-fit: contain; }
+.picked .name { font-weight: 650; }
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.item-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) auto; }
+.label-with-help { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.label-with-help label { margin-bottom: 0; }
+.help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.tip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(260px, 70vw);
+  padding: 8px 10px;
+  background: #120e0b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 450;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  line-height: 1.4;
+  z-index: 6;
+}
+.help:hover .tip, .help:focus .tip { display: block; }
+@media (min-width: 901px) {
+  .tip { left: auto; right: 0; }
+}
+@media (max-width: 900px) {
+  .tip { top: auto; bottom: calc(100% + 8px); }
+}
+.refs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+.ref {
+  background: var(--panel-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.ref span, .ref label { display: block; color: var(--muted); font-size: 0.8rem; }
+.ref strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.ref input { margin-top: 4px; font-size: 1.15rem; font-variant-numeric: tabular-nums; padding: 6px 8px; }
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+  margin: 10px 0;
+}
+.toolbar .grow { flex: 1; min-width: 180px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid rgba(74, 63, 51, 0.7); }
+th { color: var(--muted); font-weight: 650; background: #1b1612; position: sticky; top: 0; }
+th .sort {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: right;
+}
+th:first-child .sort { align-items: flex-start; text-align: left; }
+th .sort-label { display: inline-flex; align-items: center; gap: 4px; }
+th .sort-arrow { color: var(--gold); font-size: 0.72rem; line-height: 1; }
+th .sort:hover,
+th[aria-sort="ascending"] .sort,
+th[aria-sort="descending"] .sort { color: var(--text); }
+td:first-child, th:first-child {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  background: var(--sticky);
+  z-index: 1;
+}
+th:first-child { z-index: 2; background: #1b1612; }
+.floor-flag { display: block; color: var(--gold-dim); font-size: 0.75rem; font-weight: 500; }
+th .th-note, td.advice .advice-coins {
+  display: block;
+  color: var(--gold-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+td.advice { line-height: 1.2; }
+.detail {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  background: var(--panel-2);
+  border-radius: 10px;
+  padding: 12px;
+}
+.detail[hidden] { display: none; }
+.detail h3 { margin: 0 0 6px; font-size: 1rem; }
+.line-chart { position: relative; margin: 2px 0 8px; }
+.line-chart svg { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: pan-y; }
+.line-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 9rem;
+  padding: 8px 10px;
+  background: #1b1612;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+.line-tip[hidden] { display: none; }
+.line-tip strong { display: block; color: var(--gold); font-weight: 650; }
+.line-tip span { display: block; }
+a.shop-name {
+  color: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+a.shop-name:hover { color: var(--gold); }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: #2a241e; }
+tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+tbody tr.selected .shop-name { color: var(--gold); }
+tbody tr:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.note { color: var(--muted); font-size: 0.86rem; margin: 10px 0 0; }
+footer { margin-top: 22px; color: var(--muted); font-size: 0.86rem; }
+footer a { color: var(--gold); }
+@media (max-width: 900px) {
+  .item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gloves-field { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 18px 12px 32px; }
+  header h1 { font-size: 1.4rem; }
+  .refs { grid-template-columns: 1fr; }
+  .row { flex-direction: column; align-items: stretch; }
+  .item-grid { grid-template-columns: 1fr; }
+  .gloves-field { grid-column: auto; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>OSRS Shop Hop Sell Calculator</h1>
+    <details class="more">
+      <summary>What is this?</summary>
+      <p>General stores in Old School RuneScape pay less for each additional copy of an item you sell them.</p>
+
+      <p>The price drops by a fixed percentage of the item’s base value with each sale (typically 3% for standard stores)</p>
+
+      <p>For magic logs, as an example:</p>
+      <ul>
+        <li>1st sale: 128 gp</li>
+        <li>2nd sale: 118 gp</li>
+        <li>3rd sale: 108 gp</li>
+        <li>… continuing down to a minimum of 32 gp</li>
+      </ul>
+
+      <p>Hopping to a new world with fresh stock resets the price. This calculator estimates profit based on the number of hops.</p>
+      <p>Most of the time, the Grand Exchange will be the best. This site is more suited for Ironman accounts that cannot access the Grand Exchange.</p>
+    </details>
+  </header>
+
+  <section class="panel" aria-labelledby="item-heading">
+    <h2 id="item-heading">Item</h2>
+    <div class="row">
+      <div class="search-wrap">
+        <label for="item-search">Item name or id</label>
+        <input id="item-search" type="search" autocomplete="off" spellcheck="false" placeholder="Loading items…" disabled role="combobox" aria-expanded="false" aria-controls="item-results" aria-autocomplete="list">
+        <div id="item-results" class="results" role="listbox" hidden></div>
+      </div>
+      <button type="button" class="icon-btn" id="reload">Reload items</button>
+    </div>
+    <p id="status" class="status" role="status">Loading items from the wiki…</p>
+    <div id="picked" class="picked" hidden></div>
+    <div class="grid item-grid">
+      <div>
+        <label for="quantity">Total to sell</label>
+        <input id="quantity" type="text" inputmode="numeric" value="1" autocomplete="off">
+      </div>
+      <div>
+        <label for="hops-from">Hops minimum</label>
+        <input id="hops-from" type="text" inputmode="numeric" value="1" autocomplete="off">
+      </div>
+      <div>
+        <label for="hops-to">Hops maximum</label>
+        <input id="hops-to" type="text" inputmode="numeric" value="10" autocomplete="off">
+      </div>
+      <div>
+        <div class="label-with-help">
+          <label for="stock">Current stock</label>
+          <button type="button" class="help" aria-label="About current stock" aria-describedby="stock-tip">?
+            <span class="tip" id="stock-tip" role="tooltip">If the shop already has some of this item, it pays less for yours. Each one in stock lowers the price by that shop's change percent, down to the 10% floor. Every hop starts from this same stock.</span>
+          </button>
+        </div>
+        <input id="stock" type="text" inputmode="numeric" value="0" autocomplete="off">
+      </div>
+      <div class="gloves-field">
+        <label id="gloves-label">Karamja gloves</label>
+        <div class="segment" role="group" aria-labelledby="gloves-label">
+          <button type="button" data-gloves="0" aria-pressed="true">None</button>
+          <button type="button" data-gloves="1" aria-pressed="false">Gloves 1+</button>
+          <button type="button" data-gloves="3" aria-pressed="false">Gloves 3+</button>
+        </div>
+      </div>
+    </div>
+    <div class="refs" id="refs">
+      <div class="ref">
+        <label for="item-value">Value</label>
+        <input id="item-value" type="text" inputmode="numeric" value="" autocomplete="off" title="Shop prices use this number. Low and high alchemy stay the wiki prices.">
+      </div>
+      <div class="ref"><span>Low alchemy</span><strong id="ref-low">—</strong></div>
+      <div class="ref"><span>High alchemy</span><strong id="ref-high">—</strong></div>
+    </div>
+    <p id="form-error" class="error" role="status"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="general-heading">
+    <h2 id="general-heading">General stores</h2>
+    <div class="toolbar">
+      <div class="grow">
+        <label for="shop-filter">Filter shops</label>
+        <input id="shop-filter" type="search" placeholder="Shop or location" autocomplete="off">
+      </div>
+    </div>
+    <div id="shop-detail" class="detail" hidden></div>
+    <div class="table-wrap">
+      <table>
+        <thead id="shop-head"></thead>
+        <tbody id="shop-body"></tbody>
+      </table>
+    </div>
+    <p class="note">This comparison assumes the item is not on the shop's default stock. At stock 0, the first coin amount is the buy percent. Void Knight General Store and Jennifer's General Supplies share stock in game.</p>
+  </section>
+
+  <footer>
+    <p>Sell prices follow the OSRS Wiki shop calculator. General-store rates are the wiki's general store list. Item value and alchemy come from the live mapping.</p>
+    <p>
+      <a href="https://oldschool.runescape.wiki/w/Module:Shop_calculator">Module:Shop calculator</a>
+      ·
+      <a href="https://oldschool.runescape.wiki/w/Value#Actions_that_Turn_Items_to_Coins">Value</a>
+      ·
+      <a href="https://oldschool.runescape.wiki/w/General_store">General store</a>
+      ·
+      <a href="https://oldschool.runescape.wiki/w/Calculator:Shop_calculator">Shop calculator</a>
+    </p>
+  </footer>
+</div>
+<script>
+const MAPPING_URL = "https://prices.runescape.wiki/api/v1/osrs/mapping";
+const MAX_SAFE = Number.MAX_SAFE_INTEGER;
+const LEAD_RUNS = 40;
+
+const WIKI_TITLES = {
+  "Aemad's Adventuring Supplies": "Aemad's Adventuring Supplies.",
+  "Arnold's Eclectic Supplies": "Arnold's Eclectic Supplies.",
+  "Jiminua's Jungle Store": "Jiminua's Jungle Store.",
+  "Legends Guild General Store": "Legends Guild General Store.",
+  "Martin Thwait's Lost and Found": "Martin Thwait's Lost and Found.",
+  "Moon Clan General Store": "Moon Clan General Store.",
+  "Nardah General Store": "Nardah General Store.",
+  "Obli's General Store": "Obli's General Store.",
+  "Pollnivneach general store": "Pollnivneach general store.",
+  "Razmire General Store": "Razmire General Store.",
+  "Sigmund the Merchant": "Sigmund the Merchant (shop)"
+};
+
+function shopUrl(shop) {
+  const title = WIKI_TITLES[shop.name] || shop.name;
+  return "https://oldschool.runescape.wiki/w/" + encodeURIComponent(title).replace(/%20/g, "_");
+}
+
+const SHOPS = [
+  { name: "Aemad's Adventuring Supplies", location: "East Ardougne", members: true, buy: 40, delta: 2 },
+  { name: "Al Kharid General Store", location: "Al Kharid", members: false, buy: 40, delta: 3 },
+  { name: "Aldarin General Store", location: "Aldarin", members: true, buy: 40, delta: 3 },
+  { name: "Arhein's General Goods", location: "Catherby", members: true, buy: 40, delta: 3 },
+  { name: "Arnold's Eclectic Supplies", location: "Piscatoris Fishing Colony", members: true, buy: 55, delta: 2 },
+  { name: "Auburnvale General Store", location: "Auburnvale", members: true, buy: 40, delta: 3 },
+  { name: "Aurel's Supplies", location: "Burgh de Rott", members: true, buy: 40, delta: 3 },
+  { name: "Bandit Duty Free", location: "Wilderness Bandit Camp", members: false, buy: 60, delta: 3 },
+  { name: "Bolkoy's Village Shop", location: "1st floor, Tree Gnome Village", members: true, buy: 40, delta: 3 },
+  { name: "Burthorpe Supplies", location: "Burthorpe", members: true, buy: 40, delta: 3 },
+  { name: "Cam Torum General Store", location: "Cam Torum", members: true, buy: 40, delta: 3 },
+  { name: "Dal's General Ogre Supplies", location: "Gu'Tanoth", members: true, buy: 40, delta: 3 },
+  { name: "Darkmeyer General Store", location: "Darkmeyer", members: true, buy: 40, delta: 3 },
+  { name: "Dorgesh-Kaan General Supplies", location: "Dorgesh-Kaan", members: true, buy: 55, delta: 3 },
+  { name: "Durrik's Goods", location: "Deepfin Mine", members: true, buy: 15, delta: 0.8 },
+  { name: "Dwarven shopping store", location: "Dwarven Mine", members: false, buy: 30, delta: 3 },
+  { name: "Edgeville General Store", location: "Edgeville", members: false, buy: 40, delta: 3 },
+  { name: "Falador General Store", location: "Falador", members: false, buy: 40, delta: 3 },
+  { name: "Fortis General Store", location: "Civitas illa Fortis", members: true, buy: 40, delta: 3 },
+  { name: "Fossil Island General Store", location: "Museum Camp", members: true, buy: 40, delta: 3 },
+  { name: "General Store (Canifis)", location: "Canifis", members: true, buy: 10, delta: 3 },
+  { name: "Gunslik's Assorted Items", location: "Keldagrim", members: true, buy: 40, delta: 3 },
+  { name: "Ifaba's General Store", location: "Ape Atoll", members: true, buy: 50, delta: 2 },
+  { name: "Jennifer's General Supplies", location: "Shayzien", members: true, buy: 40, delta: 0.3 },
+  { name: "Jiminua's Jungle Store", location: "Karamja", members: true, buy: 50, delta: 2, diary: { minGloves: 3, buy: 55 } },
+  { name: "Karamja General Store", location: "Musa Point, Karamja", members: false, buy: 40, delta: 3, diary: { minGloves: 3, buy: 60 } },
+  { name: "Kastori General Store", location: "Kastori", members: true, buy: 40, delta: 3 },
+  { name: "Khazard General Store", location: "Port Khazard", members: true, buy: 40, delta: 1 },
+  { name: "Leenz's General Supplies", location: "Port Piscarilius", members: true, buy: 40, delta: 1 },
+  { name: "Legends Guild General Store", location: "1st floor, Legends' Guild", members: true, buy: 55, delta: 1 },
+  { name: "Little Munty's Little Shop", location: "Lovakengj", members: true, buy: 40, delta: 1 },
+  { name: "Little Shop of Horace", location: "Hosidius", members: true, buy: 40, delta: 1 },
+  { name: "Lletya General Store", location: "Lletya", members: true, buy: 40, delta: 3 },
+  { name: "Lumbridge General Store", location: "Lumbridge", members: false, buy: 40, delta: 3 },
+  { name: "Martin Thwait's Lost and Found", location: "Rogues' Den", members: true, buy: 60, delta: 2 },
+  { name: "Miscellanian General Store", location: "Miscellania and Etceteria Dungeon", members: true, buy: 40, delta: 3 },
+  { name: "Moon Clan General Store", location: "Lunar Isle", members: true, buy: 55, delta: 1 },
+  { name: "Nardah General Store", location: "Nardah", members: true, buy: 40, delta: 3 },
+  { name: "Obli's General Store", location: "Shilo Village", members: true, buy: 50, delta: 2, diary: { minGloves: 1, buy: 60 } },
+  { name: "Outer Fortis General Store", location: "Outer Fortis", members: true, buy: 40, delta: 3 },
+  { name: "Pollnivneach general store", location: "Pollnivneach", members: true, buy: 55, delta: 1 },
+  { name: "Port Phasmatys General Store", location: "Port Phasmatys", members: true, buy: 40, delta: 3 },
+  { name: "Port Roberts General Store", location: "Port Roberts", members: true, buy: 40, delta: 3 },
+  { name: "Prifddinas General Store", location: "Prifddinas", members: true, buy: 40, delta: 3 },
+  { name: "Quartermaster's Stores", location: "Tyras Camp", members: true, buy: 40, delta: 3 },
+  { name: "Quetzacalli Gorge General Store", location: "Quetzacalli Gorge", members: true, buy: 40, delta: 3 },
+  { name: "Rasolo the Wandering Merchant", location: "South of Baxtorian Falls", members: true, buy: 5, delta: 3, floorNote: true },
+  { name: "Razmire General Store", location: "Mort'ton", members: true, buy: 40, delta: 3 },
+  { name: "Regath's Wares", location: "Arceuus", members: true, buy: 40, delta: 1 },
+  { name: "Rimmington General Store", location: "Rimmington", members: false, buy: 40, delta: 3 },
+  { name: "Salvager Overlook General Store", location: "Salvager Overlook", members: true, buy: 40, delta: 3 },
+  { name: "Sigmund the Merchant", location: "Rellekka", members: true, buy: 50, delta: 3 },
+  { name: "Sunset Coast General Store", location: "Sunset Coast", members: true, buy: 40, delta: 3 },
+  { name: "Supplies's Supplies", location: "Wyrmscraig", members: true, buy: 40, delta: 3 },
+  { name: "Tal Teklan General Store", location: "Tal Teklan", members: true, buy: 40, delta: 3 },
+  { name: "The Lighthouse Store", location: "Lighthouse", members: true, buy: 55, delta: 3 },
+  { name: "Trader Stan's Trading Post", location: "Charter ships", members: true, buy: 15, delta: 2 },
+  { name: "Varrock General Store", location: "Varrock", members: false, buy: 40, delta: 3 },
+  { name: "Void Knight General Store", location: "Void Knights' Outpost", members: true, buy: 40, delta: 0.3 },
+  { name: "Warrens General Store", location: "The Warrens", members: true, buy: 40, delta: 3 },
+  { name: "West Ardougne General Store", location: "West Ardougne", members: true, buy: 55, delta: 2 },
+  { name: "Zanaris General Store", location: "Zanaris", members: true, buy: 40, delta: 3 }
+];
+
+function truncate(num) {
+  return Math.trunc(num + 0.000001);
+}
+
+function safeMul(a, b) {
+  if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b)) return null;
+  if (a === 0 || b === 0) return 0;
+  if (a > Math.floor(MAX_SAFE / b)) return null;
+  return a * b;
+}
+
+function priceBounds(opts) {
+  const value = opts.value;
+  const buy = opts.buyPercent / 100;
+  return {
+    value: value,
+    buy: buy,
+    delta: opts.deltaPercent / 100,
+    baseStock: opts.baseStock,
+    basePrice: truncate(value * buy),
+    upper: truncate(value + buy * value),
+    lower: truncate(value * 0.1)
+  };
+}
+
+function priceAtStock(bounds, at) {
+  let price;
+  if (at < bounds.baseStock) price = truncate(bounds.value * (bounds.buy + bounds.delta * (bounds.baseStock - at)));
+  else if (at === bounds.baseStock) price = bounds.basePrice;
+  else price = truncate(bounds.value * (bounds.buy - bounds.delta * (at - bounds.baseStock)));
+  if (price > bounds.upper) return bounds.upper;
+  if (price <= bounds.lower) return bounds.lower;
+  return price;
+}
+
+function sellVisit(opts) {
+  const bounds = priceBounds(opts);
+  const delta = bounds.delta;
+  const lower = bounds.lower;
+  const quantity = opts.quantity;
+  let stock = opts.currentStock;
+  let total = 0;
+  let sold = 0;
+  let first = null;
+  let last = null;
+  let hitFloor = false;
+  const runs = [];
+  let tail = null;
+  let skipped = false;
+
+  function addRun(price, count, start) {
+    if (tail && tail.price === price && tail.end + 1 === start) {
+      tail.end += count;
+      tail.count += count;
+      return;
+    }
+    const run = { price: price, start: start, end: start + count - 1, count: count };
+    if (runs.length < LEAD_RUNS) runs.push(run);
+    else skipped = true;
+    tail = run;
+  }
+
+  while (sold < quantity) {
+    const price = priceAtStock(bounds, stock);
+    if (price === lower) hitFloor = true;
+    const restFlat = delta === 0 || price === lower;
+    const count = restFlat ? quantity - sold : 1;
+    const chunk = safeMul(price, count);
+    if (chunk === null || total > MAX_SAFE - chunk) {
+      return { error: "That sale is too large to total exactly." };
+    }
+    total += chunk;
+    if (first === null) first = price;
+    last = price;
+    addRun(price, count, sold + 1);
+    sold += count;
+    if (!restFlat) stock += 1;
+  }
+
+  return {
+    total: total,
+    first: first,
+    last: last,
+    runs: runs,
+    tail: tail,
+    skipped: skipped,
+    hitFloor: hitFloor,
+    lower: lower,
+    quantity: quantity
+  };
+}
+
+function withHops(visit, hops) {
+  if (visit.error) return visit;
+  const overall = safeMul(visit.total, hops);
+  if (overall === null) return { error: "That sale is too large to total exactly." };
+  return {
+    perHop: visit.total,
+    overall: overall,
+    first: visit.first,
+    last: visit.last,
+    runs: visit.runs,
+    tail: visit.tail,
+    skipped: visit.skipped,
+    hitFloor: visit.hitFloor,
+    lower: visit.lower,
+    quantity: visit.quantity
+  };
+}
+
+function sellBatch(opts) {
+  const bounds = priceBounds(opts);
+  const start = opts.currentStock;
+  const first = priceAtStock(bounds, start);
+  if (first <= bounds.lower) {
+    return { mode: "floor", count: 0, coins: 0, lower: bounds.lower, price: first };
+  }
+  if (bounds.delta === 0) {
+    return { mode: "flat", count: null, coins: null, lower: bounds.lower, price: first };
+  }
+  const cap = 10000000;
+  function above(n) {
+    return priceAtStock(bounds, start + n - 1) > bounds.lower;
+  }
+  function finish(count, capped) {
+    let coins = null;
+    if (!capped && count > 0 && count <= 200000) {
+      const visit = sellVisit({
+        value: opts.value,
+        buyPercent: opts.buyPercent,
+        deltaPercent: opts.deltaPercent,
+        baseStock: opts.baseStock,
+        currentStock: opts.currentStock,
+        quantity: count
+      });
+      if (!visit.error) coins = visit.total;
+    }
+    return {
+      mode: "batch",
+      count: count,
+      coins: coins,
+      lower: bounds.lower,
+      price: first,
+      capped: capped
+    };
+  }
+  if (above(cap)) return finish(cap, true);
+  let hi = 1;
+  while (hi < cap && above(hi)) {
+    const next = hi * 2;
+    hi = next > cap ? cap : next;
+  }
+  let left = 1;
+  let right = hi;
+  while (left < right) {
+    const mid = Math.ceil((left + right) / 2);
+    if (above(mid)) left = mid;
+    else right = mid - 1;
+  }
+  return finish(left, false);
+}
+
+function shopRate(shop, gloves) {
+  if (shop.diary && gloves >= shop.diary.minGloves) {
+    return { buy: shop.diary.buy, delta: shop.delta, gloves: true };
+  }
+  return { buy: shop.buy, delta: shop.delta, gloves: false };
+}
+
+function formatCoins(n) {
+  return n.toLocaleString("en-US");
+}
+
+function formatPercent(n) {
+  const text = String(n);
+  return text + "%";
+}
+
+function iconUrl(icon) {
+  if (typeof icon !== "string" || icon.length === 0) return "";
+  return "https://oldschool.runescape.wiki/images/" + encodeURI(icon.replace(/ /g, "_"));
+}
+
+const searchInput = document.getElementById("item-search");
+const resultsEl = document.getElementById("item-results");
+const statusEl = document.getElementById("status");
+const pickedEl = document.getElementById("picked");
+const formError = document.getElementById("form-error");
+const shopBody = document.getElementById("shop-body");
+const shopDetail = document.getElementById("shop-detail");
+
+let catalog = [];
+let selected = null;
+let quantityStillOpening = true;
+let activeIndex = -1;
+let gloves = 0;
+let openShop = null;
+let quotes = new Map();
+let calcTimer = 0;
+let tableRows = [];
+let tableHops = [];
+let tableHopTo = 10;
+let sortKey = "hopTo";
+let sortHop = 0;
+let sortDir = -1;
+
+function setStatus(text, isError) {
+  statusEl.textContent = text;
+  statusEl.classList.toggle("error", Boolean(isError));
+}
+
+function parseIntField(raw, min, max, label) {
+  const text = String(raw).trim();
+  if (!/^\d+$/.test(text)) return { error: label + " must be a whole number from " + formatCoins(min) + " to " + formatCoins(max) + "." };
+  const n = Number(text);
+  if (!Number.isSafeInteger(n) || n < min || n > max) {
+    return { error: label + " must be a whole number from " + formatCoins(min) + " to " + formatCoins(max) + "." };
+  }
+  return { value: n };
+}
+
+function readShared() {
+  const rawValue = document.getElementById("item-value").value.trim();
+  if (!selected && rawValue === "") return { error: "", empty: true };
+  if (rawValue === "") return { error: "Enter a value for this item." };
+  const itemValue = parseIntField(rawValue, 0, 999999999, "Value");
+  if (itemValue.error) return itemValue;
+  const quantity = parseIntField(document.getElementById("quantity").value, 1, 10000000, "Total to sell");
+  if (quantity.error) return quantity;
+  const hopFrom = parseIntField(document.getElementById("hops-from").value, 1, 100000, "Hops minimum");
+  if (hopFrom.error) return hopFrom;
+  const hopTo = parseIntField(document.getElementById("hops-to").value, 1, 100000, "Hops maximum");
+  if (hopTo.error) return hopTo;
+  if (hopTo.value < hopFrom.value) return { error: "Hops maximum must be at least hops minimum." };
+  if (hopTo.value - hopFrom.value > 1999) return { error: "Hop range can cover at most 2,000 values." };
+  const stock = parseIntField(document.getElementById("stock").value, 0, 999999, "Current stock");
+  if (stock.error) return stock;
+  return {
+    item: selected,
+    value: itemValue.value,
+    quantity: quantity.value,
+    hops: sampleTableHops(hopFrom.value, hopTo.value),
+    hopFrom: hopFrom.value,
+    hopTo: hopTo.value,
+    gloves: gloves,
+    stock: stock.value
+  };
+}
+
+function sampleTableHops(from, to) {
+  const count = to - from + 1;
+  if (count <= 10) {
+    const hops = [];
+    for (let h = from; h <= to; h++) hops.push(h);
+    return hops;
+  }
+  const picked = [];
+  function add(hop) {
+    if (picked.indexOf(hop) !== -1) return;
+    picked.push(hop);
+  }
+  for (let i = 0; i <= 10; i++) {
+    if (i === 0) add(from);
+    else if (i === 10) add(to);
+    else add(from + Math.round((to - from) * i / 10));
+  }
+  if (picked.length <= 19) return picked;
+  const slim = [from];
+  for (let i = 1; i < 18; i++) {
+    const hop = from + Math.round((to - from) * i / 18);
+    if (hop > from && hop < to && slim[slim.length - 1] !== hop) slim.push(hop);
+  }
+  slim.push(to);
+  return slim;
+}
+
+function alchText(item, key) {
+  const n = item[key];
+  if (n === null || n === undefined) return null;
+  return n;
+}
+
+function renderPicked() {
+  pickedEl.replaceChildren();
+  const valueInput = document.getElementById("item-value");
+  const lowEl = document.getElementById("ref-low");
+  const highEl = document.getElementById("ref-high");
+  if (!selected) {
+    pickedEl.hidden = true;
+    valueInput.disabled = false;
+    lowEl.textContent = "—";
+    highEl.textContent = "—";
+    return;
+  }
+  valueInput.disabled = false;
+  pickedEl.hidden = false;
+  if (selected.icon) {
+    const img = document.createElement("img");
+    img.alt = "";
+    img.src = iconUrl(selected.icon);
+    img.addEventListener("error", function () { img.remove(); });
+    pickedEl.append(img);
+  }
+  const text = document.createElement("div");
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = selected.name;
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = selected.members ? "Members" : "Free-to-play";
+  name.append(badge);
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = "Id " + selected.id;
+  text.append(name, meta);
+  pickedEl.append(text);
+  const low = alchText(selected, "lowalch");
+  const high = alchText(selected, "highalch");
+  lowEl.textContent = low === null ? "Not listed" : formatCoins(low);
+  highEl.textContent = high === null ? "Not listed" : formatCoins(high);
+}
+
+function rankItem(item, q) {
+  const name = item.name.toLowerCase();
+  const id = String(item.id);
+  if (name === q) return 0;
+  if (name.startsWith(q)) return 1;
+  if (id === q) return 2;
+  if (/^\d+$/.test(q) && id.startsWith(q)) return 3;
+  return 4;
+}
+
+function matchingItems(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const digits = /^\d+$/.test(q);
+  const found = [];
+  for (let i = 0; i < catalog.length; i++) {
+    const item = catalog[i];
+    const name = item.name.toLowerCase();
+    const id = String(item.id);
+    if (name.includes(q) || (digits && id.startsWith(q))) found.push(item);
+  }
+  found.sort(function (a, b) {
+    const ra = rankItem(a, q);
+    const rb = rankItem(b, q);
+    if (ra !== rb) return ra - rb;
+    return a.name.localeCompare(b.name);
+  });
+  return found.slice(0, 30);
+}
+
+function renderResults() {
+  const matches = matchingItems(searchInput.value);
+  resultsEl.replaceChildren();
+  if (!searchInput.value.trim() || matches.length === 0 || searchInput.disabled) {
+    resultsEl.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
+    activeIndex = -1;
+    return;
+  }
+  matches.forEach(function (item, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("role", "option");
+    button.id = "item-opt-" + index;
+    const title = document.createElement("div");
+    title.textContent = item.name;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const valueBit = item.value === null || item.value === undefined ? "no value" : "value " + formatCoins(item.value);
+    meta.textContent = "Id " + item.id + " · " + valueBit + (item.members ? " · Members" : " · Free-to-play");
+    button.append(title, meta);
+    button.addEventListener("mousedown", function (event) { event.preventDefault(); });
+    button.addEventListener("click", function () { chooseItem(item); });
+    resultsEl.append(button);
+  });
+  resultsEl.hidden = false;
+  searchInput.setAttribute("aria-expanded", "true");
+  setActive(Math.min(activeIndex, matches.length - 1));
+}
+
+function setActive(index) {
+  const buttons = resultsEl.querySelectorAll("button");
+  if (buttons.length === 0) {
+    activeIndex = -1;
+    searchInput.removeAttribute("aria-activedescendant");
+    return;
+  }
+  if (index < 0) index = 0;
+  if (index >= buttons.length) index = buttons.length - 1;
+  activeIndex = index;
+  buttons.forEach(function (button, i) { button.classList.toggle("active", i === index); });
+  searchInput.setAttribute("aria-activedescendant", buttons[index].id);
+  buttons[index].scrollIntoView({ block: "nearest" });
+}
+
+function chooseItem(item) {
+  selected = item;
+  const listed = item.value === null || item.value === undefined ? "" : String(item.value);
+  document.getElementById("item-value").value = listed;
+  if (quantityStillOpening) {
+    document.getElementById("quantity").value = "500";
+    quantityStillOpening = false;
+  }
+  searchInput.value = item.name;
+  resultsEl.hidden = true;
+  searchInput.setAttribute("aria-expanded", "false");
+  activeIndex = -1;
+  updateAll();
+}
+
+function clearOutputs() {
+  tableRows = [];
+  tableHops = [];
+  renderHead();
+  shopBody.replaceChildren();
+  shopDetail.hidden = true;
+  shopDetail.replaceChildren();
+  quotes = new Map();
+}
+
+function hopLabel(count) {
+  return formatCoins(count) + (count === 1 ? " hop" : " hops");
+}
+
+function coinNoun(count) {
+  return formatCoins(count) + (count === 1 ? " coin" : " coins");
+}
+
+function itemsEachHop(entry) {
+  if (entry.eachMax <= 0) return "0 items each hop";
+  if (entry.eachMin === entry.eachMax) return itemNoun(entry.eachMax) + " each hop";
+  return formatCoins(entry.eachMin) + "–" + formatCoins(entry.eachMax) + " items each hop";
+}
+
+function visitFor(priceOpts, qty, cache) {
+  if (qty <= 0) return { total: 0 };
+  if (cache.has(qty)) return cache.get(qty);
+  const visit = sellVisit(Object.assign({ quantity: qty }, priceOpts));
+  cache.set(qty, visit);
+  return visit;
+}
+
+function stackPlan(advice, total, priceOpts, cache) {
+  const perHop = advice.mode === "batch" ? Math.min(advice.count, total) : total;
+  const visit = visitFor(priceOpts, perHop, cache);
+  if (visit.error) return { error: visit.error };
+  const remainder = total % perHop;
+  const fullHops = Math.floor(total / perHop);
+  let coins = safeMul(visit.total, fullHops);
+  if (coins === null) return { error: "That sale is too large to total exactly." };
+  let remainderCoins = 0;
+  if (remainder > 0) {
+    const remVisit = visitFor(priceOpts, remainder, cache);
+    if (remVisit.error) return { error: remVisit.error };
+    remainderCoins = remVisit.total;
+    if (coins > MAX_SAFE - remainderCoins) return { error: "That sale is too large to total exactly." };
+    coins += remainderCoins;
+  }
+  return {
+    perHop: perHop,
+    hopsNeeded: fullHops + (remainder > 0 ? 1 : 0),
+    remainder: remainder,
+    coins: coins,
+    hopCoins: visit.total,
+    remainderCoins: remainderCoins,
+    visit: visit,
+    mode: advice.mode,
+    lower: advice.lower,
+    price: advice.price,
+    atEdge: advice.mode === "batch" && !advice.capped && perHop === advice.count
+  };
+}
+
+function spreadSale(priceOpts, total, hops, cache) {
+  const base = Math.floor(total / hops);
+  const extra = total % hops;
+  let coins = 0;
+  if (extra > 0) {
+    const visit = visitFor(priceOpts, base + 1, cache);
+    if (visit.error) return { error: visit.error };
+    const part = safeMul(visit.total, extra);
+    if (part === null) return { error: "That sale is too large to total exactly." };
+    coins = part;
+  }
+  if (base > 0) {
+    const visit = visitFor(priceOpts, base, cache);
+    if (visit.error) return { error: visit.error };
+    const part = safeMul(visit.total, hops - extra);
+    if (part === null || coins > MAX_SAFE - part) return { error: "That sale is too large to total exactly." };
+    coins += part;
+  }
+  return {
+    hops: hops,
+    total: coins,
+    eachMin: base,
+    eachMax: extra > 0 ? base + 1 : base,
+    highCount: extra,
+    lowCount: hops - extra
+  };
+}
+
+function eachText(spread) {
+  if (spread.eachMax <= 0) return "0 each";
+  if (spread.eachMin === 0 || spread.eachMin === spread.eachMax) return formatCoins(spread.eachMax) + " each";
+  return formatCoins(spread.eachMin) + "–" + formatCoins(spread.eachMax) + " each";
+}
+
+function itemNoun(count) {
+  return formatCoins(count) + (count === 1 ? " item" : " items");
+}
+
+function spreadTitle(spread) {
+  const paid = " That pays " + formatCoins(spread.total) + " coins.";
+  function sells(count, items) {
+    return hopLabel(count) + (count === 1 ? " sells " : " sell ") + itemNoun(items);
+  }
+  if (spread.eachMin === spread.eachMax) {
+    return "Each of " + hopLabel(spread.hops) + " sells " + itemNoun(spread.eachMin) + "." + paid;
+  }
+  if (spread.eachMin === 0) {
+    return sells(spread.highCount, spread.eachMax) + ". The other hops sell nothing." + paid;
+  }
+  return sells(spread.highCount, spread.eachMax) + ", and " + sells(spread.lowCount, spread.eachMin) + "." + paid;
+}
+
+function buildSale(priceOpts, total, hops) {
+  const cache = new Map();
+  const plan = stackPlan(sellBatch(priceOpts), total, priceOpts, cache);
+  if (plan.error) return plan;
+  const spreads = [];
+  for (let i = 0; i < hops.length; i++) {
+    const spread = spreadSale(priceOpts, total, hops[i], cache);
+    if (spread.error) return { error: spread.error };
+    spread.each = eachText(spread);
+    spreads.push(spread);
+  }
+  return {
+    plan: plan,
+    spreads: spreads,
+    quote: {
+      perHop: plan.hopCoins,
+      first: plan.visit.first,
+      last: plan.visit.last,
+      runs: plan.visit.runs,
+      tail: plan.visit.tail,
+      skipped: plan.visit.skipped,
+      hitFloor: plan.visit.hitFloor,
+      lower: plan.visit.lower,
+      quantity: plan.perHop
+    }
+  };
+}
+
+function ensureSeries(row) {
+  if (row.series) return row.series;
+  if (row.spreads.length === row.hopTo - row.hopFrom + 1) {
+    row.series = row.spreads;
+    return row.series;
+  }
+  const cache = new Map();
+  const spreads = [];
+  for (let hops = row.hopFrom; hops <= row.hopTo; hops++) {
+    const spread = spreadSale(row.priceOpts, row.total, hops, cache);
+    if (spread.error) {
+      row.seriesError = spread.error;
+      return null;
+    }
+    spread.each = eachText(spread);
+    spreads.push(spread);
+  }
+  row.series = spreads;
+  return spreads;
+}
+
+function svgEl(name, attrs) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+  Object.keys(attrs).forEach(function (key) {
+    el.setAttribute(key, attrs[key]);
+  });
+  return el;
+}
+
+function renderLineChart(series, hopFrom, hopTo) {
+  const viewW = 760;
+  const viewH = 286;
+  const padR = 18;
+  const padT = 34;
+  const padB = 48;
+  const max = series.reduce(function (peak, entry) { return Math.max(peak, entry.total); }, 0);
+  const yMax = max === 0 ? 1 : max;
+  const yTicks = [];
+  for (let i = 0; i <= 4; i++) {
+    const value = Math.round((max * i) / 4);
+    if (!yTicks.length || yTicks[yTicks.length - 1] !== value) yTicks.push(value);
+  }
+  if (yTicks[yTicks.length - 1] !== max) yTicks.push(max);
+  const padL = yTicks.reduce(function (wide, value) {
+    return Math.max(wide, formatCoins(value).length * 7 + 16);
+  }, 52);
+  const plotW = viewW - padL - padR;
+  const plotH = viewH - padT - padB;
+
+  function xOf(hops) {
+    if (hopTo === hopFrom) return padL + plotW / 2;
+    return padL + ((hops - hopFrom) / (hopTo - hopFrom)) * plotW;
+  }
+  function yOf(total) {
+    return padT + (1 - total / yMax) * plotH;
+  }
+  function num(n) {
+    return String(Math.round(n * 10) / 10);
+  }
+
+  const svg = svgEl("svg", {
+    viewBox: "0 0 " + viewW + " " + viewH,
+    role: "img",
+    "aria-label": "Total profit by hop count, from " + hopLabel(hopFrom) + " to " + hopLabel(hopTo) + ". Hover a point to see the hops, items each hop, and total profit."
+  });
+  svg.append(svgEl("rect", { x: "0", y: "0", width: String(viewW), height: String(viewH), fill: "transparent" }));
+
+  yTicks.forEach(function (value) {
+    const y = yOf(value);
+    svg.append(svgEl("line", {
+      x1: String(padL),
+      x2: String(padL + plotW),
+      y1: num(y),
+      y2: num(y),
+      stroke: "#4a3f33",
+      "stroke-width": value === 0 ? "1.5" : "1"
+    }));
+    const label = svgEl("text", {
+      x: String(padL - 8),
+      y: num(y + 4),
+      fill: "#cbbba4",
+      "font-size": "11",
+      "text-anchor": "end"
+    });
+    label.textContent = formatCoins(value);
+    svg.append(label);
+  });
+
+  const xTicks = [];
+  const span = hopTo - hopFrom;
+  const parts = span === 0 ? 0 : span <= 6 ? span : 4;
+  for (let i = 0; i <= parts; i++) {
+    const hop = span === 0 ? hopFrom : hopFrom + Math.round(span * i / parts);
+    if (!xTicks.length || xTicks[xTicks.length - 1] !== hop) xTicks.push(hop);
+  }
+  xTicks.forEach(function (hop, index) {
+    const x = xOf(hop);
+    const anchor = index === 0 ? "start" : index === xTicks.length - 1 ? "end" : "middle";
+    const label = svgEl("text", {
+      x: num(x),
+      y: String(padT + plotH + 18),
+      fill: "#cbbba4",
+      "font-size": "11",
+      "text-anchor": anchor
+    });
+    label.textContent = formatCoins(hop);
+    svg.append(label);
+  });
+
+  const yTitle = svgEl("text", {
+    x: String(padL),
+    y: "16",
+    fill: "#cbbba4",
+    "font-size": "12",
+    "text-anchor": "start"
+  });
+  yTitle.textContent = "Total profit";
+  svg.append(yTitle);
+  const xTitle = svgEl("text", {
+    x: String(padL + plotW / 2),
+    y: String(viewH - 8),
+    fill: "#cbbba4",
+    "font-size": "12",
+    "text-anchor": "middle"
+  });
+  xTitle.textContent = "Hops";
+  svg.append(xTitle);
+
+  let d = "";
+  series.forEach(function (entry, index) {
+    d += (index === 0 ? "M" : "L") + num(xOf(entry.hops)) + " " + num(yOf(entry.total));
+  });
+  svg.append(svgEl("path", {
+    d: d,
+    fill: "none",
+    stroke: "#f0c96a",
+    "stroke-width": "2",
+    "stroke-linejoin": "round",
+    "stroke-linecap": "round",
+    "pointer-events": "none"
+  }));
+  if (series.length <= 40) {
+    series.forEach(function (entry) {
+      svg.append(svgEl("circle", {
+        cx: num(xOf(entry.hops)),
+        cy: num(yOf(entry.total)),
+        r: "3.5",
+        fill: "#f0c96a",
+        "pointer-events": "none"
+      }));
+    });
+  }
+
+  const guide = svgEl("line", {
+    stroke: "#a6843d",
+    "stroke-width": "1",
+    "stroke-dasharray": "3 3",
+    "pointer-events": "none",
+    visibility: "hidden"
+  });
+  const marker = svgEl("circle", {
+    r: "5.5",
+    fill: "#f0c96a",
+    stroke: "#1b1612",
+    "stroke-width": "2",
+    "pointer-events": "none",
+    visibility: "hidden"
+  });
+  svg.append(guide, marker);
+
+  const wrap = document.createElement("div");
+  wrap.className = "line-chart";
+  const tip = document.createElement("div");
+  tip.className = "line-tip";
+  tip.hidden = true;
+  const tipHops = document.createElement("strong");
+  const tipItems = document.createElement("span");
+  const tipProfit = document.createElement("span");
+  tip.append(tipHops, tipItems, tipProfit);
+  wrap.append(svg, tip);
+
+  let active = -1;
+  function hide() {
+    active = -1;
+    guide.setAttribute("visibility", "hidden");
+    marker.setAttribute("visibility", "hidden");
+    tip.hidden = true;
+  }
+  function show(clientX) {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width) return;
+    const x = ((clientX - rect.left) / rect.width) * viewW;
+    const clamped = Math.min(padL + plotW, Math.max(padL, x));
+    const hop = hopTo === hopFrom ? hopFrom : hopFrom + ((clamped - padL) / plotW) * (hopTo - hopFrom);
+    let index = Math.round(hop) - hopFrom;
+    if (index < 0) index = 0;
+    if (index > series.length - 1) index = series.length - 1;
+    const entry = series[index];
+    const px = xOf(entry.hops);
+    const py = yOf(entry.total);
+    guide.setAttribute("x1", num(px));
+    guide.setAttribute("x2", num(px));
+    guide.setAttribute("y1", num(py));
+    guide.setAttribute("y2", String(padT + plotH));
+    guide.setAttribute("visibility", "visible");
+    marker.setAttribute("cx", num(px));
+    marker.setAttribute("cy", num(py));
+    marker.setAttribute("visibility", "visible");
+    if (active !== index) {
+      active = index;
+      tipHops.textContent = hopLabel(entry.hops);
+      tipItems.textContent = itemsEachHop(entry);
+      tipProfit.textContent = coinNoun(entry.total);
+    }
+    tip.hidden = false;
+    const box = wrap.getBoundingClientRect();
+    const localX = rect.left - box.left + (px / viewW) * rect.width;
+    const localY = rect.top - box.top + (py / viewH) * rect.height;
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+    const margin = 8;
+    const minLeft = margin - box.left;
+    const maxLeft = window.innerWidth - margin - tw - box.left;
+    const minTop = margin - box.top;
+    const maxTop = window.innerHeight - margin - th - box.top;
+    let left = localX + 14;
+    if (left > maxLeft) left = localX - tw - 14;
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
+    const above = localY - th - 12;
+    const below = localY + 14;
+    const aboveFits = above >= minTop && above <= maxTop;
+    const belowFits = below >= minTop && below <= maxTop;
+    let top = above;
+    if (aboveFits) top = above;
+    else if (belowFits) top = below;
+    else top = Math.min(Math.max(above, minTop), maxTop);
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }
+
+  svg.addEventListener("pointermove", function (event) { show(event.clientX); });
+  svg.addEventListener("pointerdown", function (event) { show(event.clientX); });
+  svg.addEventListener("pointerleave", function (event) {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    hide();
+  });
+  return wrap;
+}
+
+function fillDetail(container, row) {
+  container.replaceChildren();
+  const heading = document.createElement("h3");
+  heading.textContent = row.shop.name;
+  container.append(heading);
+  const series = ensureSeries(row);
+  if (!series) {
+    const err = document.createElement("p");
+    err.textContent = row.seriesError || "That sale is too large to total exactly.";
+    container.append(err);
+  } else if (series.length) {
+    container.append(renderLineChart(series, row.hopFrom, row.hopTo));
+  }
+  if (row.quote.hitFloor) {
+    const floor = document.createElement("p");
+    floor.textContent = "The 10% floor was hit at " + formatCoins(row.quote.lower) + " coins.";
+    container.append(floor);
+  }
+  container.hidden = false;
+}
+
+function activeSortId() {
+  if (sortKey === "hop") return "hop:" + sortHop;
+  if (sortKey === "hopTo") return "hop:" + tableHopTo;
+  return sortKey;
+}
+
+function applySort(key, hop) {
+  const next = key === "hop" ? "hop:" + hop : key;
+  if (next === activeSortId()) sortDir = -sortDir;
+  else {
+    sortKey = key;
+    sortHop = hop || 0;
+    sortDir = key === "shop" ? 1 : -1;
+  }
+  paintTable(false);
+}
+
+function headerCell(label, key, hop, note, title) {
+  const th = document.createElement("th");
+  const id = key === "hop" ? "hop:" + hop : key;
+  const on = id === activeSortId();
+  th.setAttribute("aria-sort", on ? (sortDir < 0 ? "descending" : "ascending") : "none");
+  if (title) th.title = title;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "sort";
+  const row = document.createElement("span");
+  row.className = "sort-label";
+  const text = document.createElement("span");
+  text.textContent = label;
+  row.append(text);
+  if (on) {
+    const arrow = document.createElement("span");
+    arrow.className = "sort-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.textContent = sortDir < 0 ? "↓" : "↑";
+    row.append(arrow);
+  }
+  button.append(row);
+  if (note) {
+    const sub = document.createElement("span");
+    sub.className = "th-note";
+    sub.textContent = note;
+    button.append(sub);
+  }
+  button.addEventListener("click", function () { applySort(key, hop); });
+  th.append(button);
+  return th;
+}
+
+function renderHead() {
+  const tr = document.createElement("tr");
+  tr.append(headerCell("Shop", "shop", 0, "", ""));
+  tr.append(headerCell("Buy", "buy", 0, "", ""));
+  tr.append(headerCell("Change", "change", 0, "", ""));
+  tableHops.forEach(function (count) {
+    tr.append(headerCell(
+      hopLabel(count),
+      "hop",
+      count,
+      "split stack",
+      "Coins for selling the whole stack in " + hopLabel(count) + ". Items are split evenly, and every hop starts from the same stock."
+    ));
+  });
+  document.getElementById("shop-head").replaceChildren(tr);
+}
+
+function spreadCoins(row, hops) {
+  for (let i = 0; i < row.spreads.length; i++) {
+    if (row.spreads[i].hops === hops) return row.spreads[i].total;
+  }
+  return 0;
+}
+
+function compareRows(a, b) {
+  let diff = 0;
+  if (sortKey === "shop") diff = a.shop.name.localeCompare(b.shop.name);
+  else if (sortKey === "buy") diff = a.rate.buy - b.rate.buy;
+  else if (sortKey === "change") diff = a.rate.delta - b.rate.delta;
+  else if (sortKey === "hop") diff = spreadCoins(a, sortHop) - spreadCoins(b, sortHop);
+  else diff = a.hopToCoins - b.hopToCoins;
+  if (diff !== 0) return diff * sortDir;
+  if (sortKey !== "change" && a.rate.delta !== b.rate.delta) return a.rate.delta - b.rate.delta;
+  return a.shop.name.localeCompare(b.shop.name);
+}
+
+function addSplitCell(tr, spread) {
+  const td = document.createElement("td");
+  td.className = "advice";
+  const main = document.createElement("span");
+  main.textContent = formatCoins(spread.total);
+  const sub = document.createElement("span");
+  sub.className = "advice-coins";
+  sub.textContent = spread.each;
+  td.title = spreadTitle(spread);
+  td.append(main, sub);
+  tr.append(td);
+}
+
+function renderGeneral(shared) {
+  const filter = document.getElementById("shop-filter").value.trim().toLowerCase();
+  const rows = [];
+  let overflow = "";
+  SHOPS.forEach(function (shop) {
+    if (filter && (shop.name + " " + shop.location).toLowerCase().indexOf(filter) === -1) return;
+    const rate = shopRate(shop, shared.gloves);
+    const priceOpts = {
+      value: shared.value,
+      buyPercent: rate.buy,
+      deltaPercent: rate.delta,
+      baseStock: 0,
+      currentStock: shared.stock
+    };
+    const sale = buildSale(priceOpts, shared.quantity, shared.hops);
+    if (sale.error) {
+      overflow = sale.error;
+      return;
+    }
+    rows.push({
+      shop: shop,
+      rate: rate,
+      quote: sale.quote,
+      plan: sale.plan,
+      spreads: sale.spreads,
+      total: shared.quantity,
+      priceOpts: priceOpts,
+      hopFrom: shared.hopFrom,
+      hopTo: shared.hopTo,
+      hopToCoins: (function () {
+        for (let i = 0; i < sale.spreads.length; i++) {
+          if (sale.spreads[i].hops === shared.hopTo) return sale.spreads[i].total;
+        }
+        return 0;
+      })(),
+      series: null
+    });
+  });
+  if (overflow) {
+    formError.textContent = overflow;
+    clearOutputs();
+    return;
+  }
+  tableRows = rows;
+  tableHops = shared.hops.slice().reverse();
+  tableHopTo = shared.hopTo;
+  if (sortKey === "hop" && tableHops.indexOf(sortHop) === -1) {
+    sortKey = "hopTo";
+    sortDir = -1;
+  }
+  paintTable(true);
+}
+
+function paintTable(resetSelection) {
+  const rows = tableRows.slice().sort(compareRows);
+  let bestCoins = -1;
+  rows.forEach(function (row) {
+    if (row.hopToCoins > bestCoins) bestCoins = row.hopToCoins;
+  });
+  let bestName = null;
+  let bestDelta = Infinity;
+  rows.forEach(function (row) {
+    if (row.hopToCoins !== bestCoins) return;
+    const earlierName = bestName !== null && row.shop.name.localeCompare(bestName) < 0;
+    if (bestName === null || row.rate.delta < bestDelta || (row.rate.delta === bestDelta && earlierName)) {
+      bestName = row.shop.name;
+      bestDelta = row.rate.delta;
+    }
+  });
+  const previous = openShop;
+  const stillVisible = rows.some(function (row) { return row.shop.name === previous; });
+  if (resetSelection || !stillVisible) openShop = bestName;
+  quotes = new Map();
+  renderHead();
+  shopBody.replaceChildren();
+  rows.forEach(function (row) {
+    quotes.set(row.shop.name, row);
+    const tr = document.createElement("tr");
+    tr.className = row.shop.name === openShop ? "selected" : "";
+    tr.tabIndex = 0;
+    tr.dataset.shop = row.shop.name;
+    tr.setAttribute("aria-selected", row.shop.name === openShop ? "true" : "false");
+    tr.addEventListener("click", function () { selectShop(row.shop.name, true); });
+    tr.addEventListener("keydown", function (event) {
+      if (event.target.closest("a")) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      selectShop(row.shop.name, true);
+    });
+    const nameTd = document.createElement("td");
+    const nameBtn = document.createElement("a");
+    nameBtn.className = "shop-name";
+    nameBtn.href = shopUrl(row.shop);
+    nameBtn.target = "_blank";
+    nameBtn.rel = "noopener noreferrer";
+    nameBtn.textContent = row.shop.name;
+    nameBtn.title = "Wiki page for " + row.shop.name;
+    nameBtn.addEventListener("click", function (event) { event.stopPropagation(); });
+    nameTd.append(nameBtn);
+    if (row.shop.floorNote) {
+      const flag = document.createElement("span");
+      flag.className = "floor-flag";
+      flag.textContent = "Listed at " + formatPercent(row.shop.buy) + ", below the 10% floor.";
+      nameTd.append(flag);
+    }
+    tr.append(nameTd);
+    addCell(tr, formatPercent(row.rate.buy) + (row.rate.gloves ? " gloves" : ""));
+    addCell(tr, formatPercent(row.rate.delta));
+    tableHops.forEach(function (count) {
+      const spread = row.spreads.find(function (item) { return item.hops === count; });
+      addSplitCell(tr, spread);
+    });
+    shopBody.append(tr);
+  });
+  if (openShop && quotes.has(openShop)) {
+    if (resetSelection || openShop !== previous || shopDetail.hidden) selectShop(openShop, false);
+  } else {
+    openShop = null;
+    shopDetail.hidden = true;
+    shopDetail.replaceChildren();
+  }
+}
+
+function addCell(tr, text) {
+  const td = document.createElement("td");
+  td.textContent = text;
+  tr.append(td);
+}
+
+function selectShop(name, scroll) {
+  const row = quotes.get(name);
+  if (!row) return;
+  openShop = name;
+  shopBody.querySelectorAll("tr").forEach(function (tr) {
+    const on = tr.dataset.shop === name;
+    tr.classList.toggle("selected", on);
+    tr.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  fillDetail(shopDetail, row);
+  if (scroll) shopDetail.scrollIntoView({ block: "nearest" });
+}
+
+function updateAll() {
+  renderPicked();
+  const shared = readShared();
+  if (shared.empty) {
+    formError.textContent = "";
+    clearOutputs();
+    return;
+  }
+  if (shared.error) {
+    formError.textContent = shared.error;
+    clearOutputs();
+    return;
+  }
+  formError.textContent = "";
+  renderGeneral(shared);
+}
+
+function scheduleUpdate() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(updateAll, 60);
+}
+
+async function loadCatalog() {
+  searchInput.disabled = true;
+  searchInput.placeholder = "Loading items…";
+  setStatus("Loading items from the wiki…", false);
+  try {
+    const response = await fetch(MAPPING_URL);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Unexpected item list");
+    catalog = data;
+    searchInput.disabled = false;
+    searchInput.placeholder = "Search by name or id";
+    setStatus("Loaded " + formatCoins(catalog.length) + " items.", false);
+    if (selected) {
+      const fresh = catalog.find(function (item) { return item.id === selected.id; });
+      selected = fresh || null;
+      if (!selected) searchInput.value = "";
+    }
+  } catch (err) {
+    catalog = [];
+    selected = null;
+    searchInput.disabled = true;
+    searchInput.placeholder = "Item list unavailable";
+    setStatus("Could not load the item list. Serve this page over http and use Reload items.", true);
+  }
+  updateAll();
+}
+
+
+searchInput.addEventListener("input", function () {
+  if (!selected || searchInput.value !== selected.name) selected = null;
+  activeIndex = -1;
+  renderResults();
+  scheduleUpdate();
+});
+searchInput.addEventListener("keydown", function (event) {
+  const buttons = resultsEl.querySelectorAll("button");
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (resultsEl.hidden) renderResults();
+    setActive(activeIndex + 1);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    setActive(activeIndex - 1);
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    if (!resultsEl.hidden && buttons.length > 0) {
+      const index = activeIndex >= 0 ? activeIndex : 0;
+      buttons[index].click();
+    }
+  } else if (event.key === "Escape") {
+    resultsEl.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
+  }
+});
+document.addEventListener("mousedown", function (event) {
+  if (!event.target.closest(".search-wrap")) {
+    resultsEl.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
+  }
+});
+document.getElementById("reload").addEventListener("click", loadCatalog);
+["quantity", "hops-from", "hops-to", "stock", "item-value", "shop-filter"].forEach(function (id) {
+  document.getElementById(id).addEventListener("input", function () {
+    if (id === "quantity") {
+      quantityStillOpening = false;
+      document.getElementById("hops-to").value = document.getElementById("quantity").value;
+    }
+    scheduleUpdate();
+  });
+});
+document.querySelectorAll("[data-gloves]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    gloves = Number(button.getAttribute("data-gloves"));
+    document.querySelectorAll("[data-gloves]").forEach(function (other) {
+      other.setAttribute("aria-pressed", other === button ? "true" : "false");
+    });
+    updateAll();
+  });
+});
+loadCatalog();
+updateAll();
+</script>
+</body>
+</html>
