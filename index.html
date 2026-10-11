@@ -193,6 +193,37 @@ input[type="text"], input[type="search"] {
   margin: 10px 0;
 }
 .toolbar .grow { flex: 1; min-width: 180px; }
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.each-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+.check input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--gold); }
+.hop-sliders {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  margin: 4px 0 12px;
+}
+.hop-sliders label { color: var(--muted); font-size: 0.86rem; }
+.hop-sliders label span { color: var(--gold); font-variant-numeric: tabular-nums; font-weight: 650; }
+.hop-sliders input[type="range"] { width: 100%; margin: 0; accent-color: var(--gold); }
+.each-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+  margin: 0 0 8px;
+}
+.each-field { width: 9.5rem; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
 table { width: 100%; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
 th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid rgba(74, 63, 51, 0.7); }
@@ -211,20 +242,14 @@ th .sort {
   cursor: pointer;
   text-align: right;
 }
-th:first-child .sort { align-items: flex-start; text-align: left; }
 th .sort-label { display: inline-flex; align-items: center; gap: 4px; }
 th .sort-arrow { color: var(--gold); font-size: 0.72rem; line-height: 1; }
 th .sort:hover,
 th[aria-sort="ascending"] .sort,
 th[aria-sort="descending"] .sort { color: var(--text); }
-td:first-child, th:first-child {
-  position: sticky;
-  left: 0;
-  text-align: left;
-  background: var(--sticky);
-  z-index: 1;
-}
-th:first-child { z-index: 2; background: #1b1612; }
+.shop-col { position: sticky; left: 0; z-index: 1; text-align: left; background: var(--sticky); }
+th.shop-col { z-index: 2; background: #1b1612; }
+th.shop-col .sort { align-items: flex-start; text-align: left; }
 .floor-flag { display: block; color: var(--gold-dim); font-size: 0.75rem; font-weight: 500; }
 th .th-note, td.advice .advice-coins {
   display: block;
@@ -244,6 +269,8 @@ td.advice { line-height: 1.2; }
 .detail h3 { margin: 0 0 6px; font-size: 1rem; }
 .line-chart { position: relative; margin: 2px 0 8px; }
 .line-chart svg { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: pan-y; }
+.line-chart.frozen svg { cursor: pointer; }
+.line-chart.frozen .line-tip { border-color: var(--gold); }
 .line-tip {
   position: absolute;
   z-index: 5;
@@ -262,6 +289,40 @@ td.advice { line-height: 1.2; }
 .line-tip[hidden] { display: none; }
 .line-tip strong { display: block; color: var(--gold); font-weight: 650; }
 .line-tip span { display: block; }
+.line-tip .tip-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.line-tip .tip-line i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--swatch);
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 0 0 8px;
+}
+.chart-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #120e0b;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+.chart-legend i {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--swatch);
+}
 a.shop-name {
   color: inherit;
   font-weight: 650;
@@ -271,8 +332,8 @@ a.shop-name {
 a.shop-name:hover { color: var(--gold); }
 tbody tr { cursor: pointer; }
 tbody tr:hover td { background: #2a241e; }
-tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
-tbody tr.selected .shop-name { color: var(--gold); }
+tbody tr.selected .shop-col { box-shadow: inset 3px 0 0 var(--row-color, var(--gold)); }
+tbody tr.selected .shop-name { color: var(--row-color, var(--gold)); }
 tbody tr:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 .note { color: var(--muted); font-size: 0.86rem; margin: 10px 0 0; }
 footer { margin-top: 22px; color: var(--muted); font-size: 0.86rem; }
@@ -364,9 +425,30 @@ footer a { color: var(--gold); }
         <input id="shop-filter" type="search" placeholder="Shop or location" autocomplete="off">
       </div>
     </div>
+    <p class="note">Click shops to add their lines to the chart. Click a highlighted shop to remove it.</p>
+    <div class="hop-sliders">
+      <label for="hops-from-slider">Hops minimum <span id="hops-from-readout">1</span></label>
+      <input id="hops-from-slider" type="range" min="1" max="1" value="1">
+      <label for="hops-to-slider">Hops maximum <span id="hops-to-readout">10</span></label>
+      <input id="hops-to-slider" type="range" min="1" max="10" value="10">
+    </div>
     <div id="shop-detail" class="detail" hidden></div>
+    <div class="each-row">
+      <div class="each-field">
+        <label for="each-hop">Items each hop</label>
+        <input id="each-hop" type="text" inputmode="numeric" value="" placeholder="Optional" autocomplete="off" title="Sell this many items every hop. Adds a column beside the hop columns and sorts shops by those coins.">
+      </div>
+      <div class="each-actions">
+        <button type="button" class="text-btn" id="add-all-shops" title="Add every visible shop to the chart. Shops with the same buy percent, change percent, and stock share one line.">Add all to chart</button>
+        <label class="check" for="hide-similar" title="Hide shops that share a buy percent and change percent. The shop that sorts first in each group stays.">
+          <input id="hide-similar" type="checkbox" checked>
+          Hide similar shops
+        </label>
+      </div>
+    </div>
+    <p id="each-error" class="error" role="status" hidden></p>
     <div class="table-wrap">
-      <table>
+      <table aria-multiselectable="true">
         <thead id="shop-head"></thead>
         <tbody id="shop-body"></tbody>
       </table>
@@ -391,6 +473,7 @@ footer a { color: var(--gold); }
 const MAPPING_URL = "https://prices.runescape.wiki/api/v1/osrs/mapping";
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 const LEAD_RUNS = 40;
+const LINE_COLORS = ["#f0c96a", "#7eb6ff", "#b7d7a8", "#ff8f7a", "#d7b0ff", "#7fd0d0", "#f5a6c8", "#e6d7a8"];
 
 const WIKI_TITLES = {
   "Aemad's Adventuring Supplies": "Aemad's Adventuring Supplies.",
@@ -501,7 +584,6 @@ const STORELINE_FIELDS = [
 let shopListings = [];
 let shopListingName = "";
 let shopListingState = "idle";
-let shopListingSkipped = "";
 let shopFetchToken = 0;
 
 function luaQuote(value) {
@@ -548,20 +630,13 @@ function shopBuysRow(row) {
 function parseStorelines(rows) {
   const shops = [];
   const seen = new Set();
-  let skipped = 0;
   rows.forEach(function (row) {
-    if (!shopBuysRow(row)) {
-      skipped += 1;
-      return;
-    }
+    if (!shopBuysRow(row)) return;
     const buy = tenthsToPercent(row.store_buy_multiplier);
     const deltaRaw = tenthsToPercent(row.store_delta);
     const stock = parseListedStock(row.store_stock);
     const page = String(row.page_name || row.sold_by || "").trim();
-    if (buy === null || deltaRaw === null || stock === null || !page) {
-      skipped += 1;
-      return;
-    }
+    if (buy === null || deltaRaw === null || stock === null || !page) return;
     const note = String(row.store_notes || "").trim();
     const currency = String(row.store_currency || "Coins").trim() || "Coins";
     const infinite = stock === Infinity;
@@ -595,13 +670,7 @@ function parseStorelines(rows) {
       floorNote: buy < 10 && currency === "Coins"
     });
   });
-  let noteText = "";
-  if (skipped === 1) noteText = "1 listing does not buy this item.";
-  else if (skipped > 1) noteText = formatCoins(skipped) + " listings do not buy this item.";
-  if (rows.length >= 500) {
-    noteText = (noteText + " The wiki returned 500 rows, so some shops may be missing.").trim();
-  }
-  return { shops: shops, note: noteText };
+  return { shops: shops };
 }
 
 function coveredShopNames() {
@@ -625,7 +694,6 @@ function clearShopLookup() {
   shopListingName = "";
   shopListings = [];
   shopListingState = "idle";
-  shopListingSkipped = "";
 }
 
 function beginShopLookup(item) {
@@ -635,7 +703,6 @@ function beginShopLookup(item) {
   shopListingName = item.name;
   shopListings = [];
   shopListingState = "loading";
-  shopListingSkipped = "";
   fetchShopListings(item.name, token);
 }
 
@@ -650,12 +717,10 @@ async function fetchShopListings(itemName, token) {
     if (!data || data.error || !Array.isArray(data.bucket)) throw new Error("Shop query failed");
     const parsed = parseStorelines(data.bucket);
     shopListings = parsed.shops;
-    shopListingSkipped = parsed.note;
     shopListingState = "ready";
   } catch (err) {
     if (token !== shopFetchToken) return;
     shopListings = [];
-    shopListingSkipped = "";
     shopListingState = "error";
   }
   updateAll();
@@ -666,14 +731,7 @@ function shopStatusText() {
   const name = shopListingName;
   if (shopListingState === "loading") return "Loading shops that stock " + name + "…";
   if (shopListingState === "error") return "Could not load shop listings for " + name + ". General stores are still listed.";
-  if (shopListingState !== "ready") return "";
-  const count = shopListings.length;
-  let text;
-  if (count === 0) text = "No shop lists a buy price for " + name + ". General stores still buy it.";
-  else if (count === 1) text = "1 shop lists a buy price for " + name + ". That row starts from the stock on the wiki.";
-  else text = formatCoins(count) + " shops list a buy price for " + name + ". Those rows start from the stock on the wiki.";
-  if (shopListingSkipped) text += " " + shopListingSkipped;
-  return text;
+  return "";
 }
 
 function updateShopStatus() {
@@ -879,12 +937,21 @@ let selected = null;
 let quantityStillOpening = true;
 let activeIndex = -1;
 let gloves = 0;
-let openShop = null;
+let openShops = [];
+let chartLabels = new Map();
+let shopChoice = false;
+let pinEachSort = false;
 let quotes = new Map();
 let calcTimer = 0;
 let tableRows = [];
 let tableHops = [];
 let tableHopTo = 10;
+let tableEach = 0;
+let tableEachHops = 0;
+let tableEachFull = 0;
+let tableEachRem = 0;
+let tableEachStack = 0;
+let tableQuantity = 0;
 let sortKey = "hopTo";
 let sortHop = 0;
 let sortDir = -1;
@@ -904,6 +971,65 @@ function parseIntField(raw, min, max, label) {
   return { value: n };
 }
 
+function readWhole(id) {
+  const raw = document.getElementById(id).value.trim();
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n)) return null;
+  return n;
+}
+
+function syncHopSliders() {
+  const amount = readWhole("quantity");
+  let limit = amount !== null && amount >= 1 ? amount : 1;
+  if (limit > 10000000) limit = 10000000;
+  const from = readWhole("hops-from");
+  const to = readWhole("hops-to");
+  let max = limit;
+  if (from !== null && from > max) max = Math.min(from, 10000000);
+  if (to !== null && to > max) max = Math.min(to, 10000000);
+  [["hops-from", from], ["hops-to", to]].forEach(function (pair) {
+    const slider = document.getElementById(pair[0] + "-slider");
+    const value = pair[1] === null ? 1 : Math.min(Math.max(pair[1], 1), max);
+    slider.min = "1";
+    slider.max = String(max);
+    slider.value = String(value);
+    document.getElementById(pair[0] + "-readout").textContent = String(value);
+  });
+}
+
+function applyHopSlider(which) {
+  const fromSlider = document.getElementById("hops-from-slider");
+  const toSlider = document.getElementById("hops-to-slider");
+  let from = Number(fromSlider.value);
+  let to = Number(toSlider.value);
+  const limit = Number(toSlider.max);
+  if (which === "hops-from" && from > to) to = from;
+  if (which === "hops-to" && to < from) from = to;
+  if (to - from > 1999) {
+    if (which === "hops-to") from = Math.max(1, to - 1999);
+    else to = Math.min(limit, from + 1999);
+  }
+  document.getElementById("hops-from").value = String(from);
+  document.getElementById("hops-to").value = String(to);
+  syncHopSliders();
+  scheduleUpdate();
+}
+
+function readEachHop() {
+  const raw = document.getElementById("each-hop").value.trim();
+  if (raw === "") return { value: 0 };
+  return parseIntField(raw, 1, 10000000, "Items each hop");
+}
+
+function syncEachError() {
+  const el = document.getElementById("each-error");
+  const read = readEachHop();
+  el.textContent = read.error || "";
+  el.hidden = !read.error;
+  return read;
+}
+
 function readShared() {
   const rawValue = document.getElementById("item-value").value.trim();
   if (!selected && rawValue === "") return { error: "", empty: true };
@@ -912,9 +1038,9 @@ function readShared() {
   if (itemValue.error) return itemValue;
   const quantity = parseIntField(document.getElementById("quantity").value, 1, 10000000, "Total to sell");
   if (quantity.error) return quantity;
-  const hopFrom = parseIntField(document.getElementById("hops-from").value, 1, 100000, "Hops minimum");
+  const hopFrom = parseIntField(document.getElementById("hops-from").value, 1, 10000000, "Hops minimum");
   if (hopFrom.error) return hopFrom;
-  const hopTo = parseIntField(document.getElementById("hops-to").value, 1, 100000, "Hops maximum");
+  const hopTo = parseIntField(document.getElementById("hops-to").value, 1, 10000000, "Hops maximum");
   if (hopTo.error) return hopTo;
   if (hopTo.value < hopFrom.value) return { error: "Hops maximum must be at least hops minimum." };
   if (hopTo.value - hopFrom.value > 1999) return { error: "Hop range can cover at most 2,000 values." };
@@ -924,7 +1050,7 @@ function readShared() {
     item: selected,
     value: itemValue.value,
     quantity: quantity.value,
-    hops: sampleTableHops(hopFrom.value, hopTo.value),
+    hops: sampleTableHops(hopFrom.value, hopTo.value, quantity.value),
     hopFrom: hopFrom.value,
     hopTo: hopTo.value,
     gloves: gloves,
@@ -932,31 +1058,19 @@ function readShared() {
   };
 }
 
-function sampleTableHops(from, to) {
-  const count = to - from + 1;
-  if (count <= 10) {
-    const hops = [];
-    for (let h = from; h <= to; h++) hops.push(h);
-    return hops;
+function sampleTableHops(from, to, quantity) {
+  const divisors = [];
+  for (let hop = from; hop <= to; hop++) {
+    if (quantity % hop === 0) divisors.push(hop);
   }
+  if (divisors.length <= 10) return divisors;
   const picked = [];
-  function add(hop) {
-    if (picked.indexOf(hop) !== -1) return;
-    picked.push(hop);
-  }
+  const last = divisors.length - 1;
   for (let i = 0; i <= 10; i++) {
-    if (i === 0) add(from);
-    else if (i === 10) add(to);
-    else add(from + Math.round((to - from) * i / 10));
+    const hop = divisors[Math.round(last * i / 10)];
+    if (picked.indexOf(hop) === -1) picked.push(hop);
   }
-  if (picked.length <= 19) return picked;
-  const slim = [from];
-  for (let i = 1; i < 18; i++) {
-    const hop = from + Math.round((to - from) * i / 18);
-    if (hop > from && hop < to && slim[slim.length - 1] !== hop) slim.push(hop);
-  }
-  slim.push(to);
-  return slim;
+  return picked;
 }
 
 function alchText(item, key) {
@@ -1082,6 +1196,8 @@ function setActive(index) {
 
 function chooseItem(item) {
   selected = item;
+  shopChoice = false;
+  openShops = [];
   const listed = item.value === null || item.value === undefined ? "" : String(item.value);
   document.getElementById("item-value").value = listed;
   if (quantityStillOpening) {
@@ -1099,6 +1215,12 @@ function chooseItem(item) {
 function clearOutputs() {
   tableRows = [];
   tableHops = [];
+  tableEach = 0;
+  tableEachHops = 0;
+  tableEachFull = 0;
+  tableEachRem = 0;
+  tableEachStack = 0;
+  tableQuantity = 0;
   renderHead();
   shopBody.replaceChildren();
   shopDetail.hidden = true;
@@ -1216,6 +1338,54 @@ function spreadTitle(spread) {
   return sells(spread.highCount, spread.eachMax) + ", and " + sells(spread.lowCount, spread.eachMin) + "." + paid;
 }
 
+function eachPlan(total, each) {
+  const per = Math.min(each, total);
+  const full = Math.floor(total / per);
+  const rem = total % per;
+  return { per: per, full: full, rem: rem, hops: full + (rem > 0 ? 1 : 0) };
+}
+
+function eachHopSale(priceOpts, total, each) {
+  const plan = eachPlan(total, each);
+  const cache = new Map();
+  const visit = visitFor(priceOpts, plan.per, cache);
+  if (visit.error) return visit;
+  let coins = safeMul(visit.total, plan.full);
+  if (coins === null) return { error: "That sale is too large to total exactly." };
+  if (plan.rem > 0) {
+    const remVisit = visitFor(priceOpts, plan.rem, cache);
+    if (remVisit.error) return remVisit;
+    if (coins > MAX_SAFE - remVisit.total) return { error: "That sale is too large to total exactly." };
+    coins += remVisit.total;
+  }
+  return {
+    per: plan.per,
+    hops: plan.hops,
+    full: plan.full,
+    rem: plan.rem,
+    total: coins
+  };
+}
+
+function eachHeaderTitle() {
+  const stack = itemNoun(tableEachStack);
+  const per = itemNoun(tableEach);
+  if (tableEachRem > 0) {
+    return "Coins for selling " + stack + " at " + per + " each hop. That is " + hopLabel(tableEachFull) + " of " + formatCoins(tableEach) + " and one hop of " + formatCoins(tableEachRem) + ". Every hop starts from the same stock.";
+  }
+  return "Coins for selling " + stack + " at " + per + " on each of " + hopLabel(tableEachHops) + ". Every hop starts from the same stock.";
+}
+
+function eachCellTitle(sale, currency) {
+  let body;
+  if (sale.rem > 0) {
+    body = hopLabel(sale.full) + " sell " + itemNoun(sale.per) + ", and one hop sells " + itemNoun(sale.rem) + ".";
+  } else {
+    body = "Each of " + hopLabel(sale.hops) + " sells " + itemNoun(sale.per) + ".";
+  }
+  return body + " That pays " + moneyNoun(sale.total, currency) + ".";
+}
+
 function buildSale(priceOpts, total, hops) {
   const cache = new Map();
   const plan = stackPlan(sellBatch(priceOpts), total, priceOpts, cache);
@@ -1273,13 +1443,15 @@ function svgEl(name, attrs) {
   return el;
 }
 
-function renderLineChart(series, hopFrom, hopTo, currency) {
+function renderLineChart(lines, hopFrom, hopTo) {
   const viewW = 760;
   const viewH = 286;
   const padR = 18;
   const padT = 34;
   const padB = 48;
-  const max = series.reduce(function (peak, entry) { return Math.max(peak, entry.total); }, 0);
+  const max = lines.reduce(function (peak, line) {
+    return line.series.reduce(function (best, entry) { return Math.max(best, entry.total); }, peak);
+  }, 0);
   const yMax = max === 0 ? 1 : max;
   const yTicks = [];
   for (let i = 0; i <= 4; i++) {
@@ -1307,7 +1479,7 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
   const svg = svgEl("svg", {
     viewBox: "0 0 " + viewW + " " + viewH,
     role: "img",
-    "aria-label": "Total profit by hop count, from " + hopLabel(hopFrom) + " to " + hopLabel(hopTo) + ". Hover a point to see the hops, items each hop, and total profit."
+    "aria-label": "Total profit by hop count, from " + hopLabel(hopFrom) + " to " + hopLabel(hopTo) + ", for " + lines.map(function (line) { return line.name; }).join(", ") + ". Hover to see the hops, items each hop, and total profit. Click to pin that readout."
   });
   svg.append(svgEl("rect", { x: "0", y: "0", width: String(viewW), height: String(viewH), fill: "transparent" }));
 
@@ -1360,7 +1532,12 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
     "font-size": "12",
     "text-anchor": "start"
   });
-  yTitle.textContent = currency && currency !== "Coins" ? "Total profit (" + currency + ")" : "Total profit";
+  const currencies = [];
+  lines.forEach(function (line) {
+    const name = line.currency || "Coins";
+    if (currencies.indexOf(name) === -1) currencies.push(name);
+  });
+  yTitle.textContent = currencies.length === 1 && currencies[0] !== "Coins" ? "Total profit (" + currencies[0] + ")" : "Total profit";
   svg.append(yTitle);
   const xTitle = svgEl("text", {
     x: String(padL + plotW / 2),
@@ -1372,30 +1549,32 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
   xTitle.textContent = "Hops";
   svg.append(xTitle);
 
-  let d = "";
-  series.forEach(function (entry, index) {
-    d += (index === 0 ? "M" : "L") + num(xOf(entry.hops)) + " " + num(yOf(entry.total));
-  });
-  svg.append(svgEl("path", {
-    d: d,
-    fill: "none",
-    stroke: "#f0c96a",
-    "stroke-width": "2",
-    "stroke-linejoin": "round",
-    "stroke-linecap": "round",
-    "pointer-events": "none"
-  }));
-  if (series.length <= 40) {
-    series.forEach(function (entry) {
-      svg.append(svgEl("circle", {
-        cx: num(xOf(entry.hops)),
-        cy: num(yOf(entry.total)),
-        r: "3.5",
-        fill: "#f0c96a",
-        "pointer-events": "none"
-      }));
+  lines.forEach(function (line) {
+    let d = "";
+    line.series.forEach(function (entry, index) {
+      d += (index === 0 ? "M" : "L") + num(xOf(entry.hops)) + " " + num(yOf(entry.total));
     });
-  }
+    svg.append(svgEl("path", {
+      d: d,
+      fill: "none",
+      stroke: line.color,
+      "stroke-width": "2",
+      "stroke-linejoin": "round",
+      "stroke-linecap": "round",
+      "pointer-events": "none"
+    }));
+    if (line.series.length <= 40) {
+      line.series.forEach(function (entry) {
+        svg.append(svgEl("circle", {
+          cx: num(xOf(entry.hops)),
+          cy: num(yOf(entry.total)),
+          r: "3.5",
+          fill: line.color,
+          "pointer-events": "none"
+        }));
+      });
+    }
+  });
 
   const guide = svgEl("line", {
     stroke: "#a6843d",
@@ -1404,32 +1583,59 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
     "pointer-events": "none",
     visibility: "hidden"
   });
-  const marker = svgEl("circle", {
-    r: "5.5",
-    fill: "#f0c96a",
-    stroke: "#1b1612",
-    "stroke-width": "2",
-    "pointer-events": "none",
-    visibility: "hidden"
+  const markers = lines.map(function (line) {
+    return svgEl("circle", {
+      r: "5.5",
+      fill: line.color,
+      stroke: "#1b1612",
+      "stroke-width": "2",
+      "pointer-events": "none",
+      visibility: "hidden"
+    });
   });
-  svg.append(guide, marker);
+  svg.append(guide);
+  markers.forEach(function (marker) { svg.append(marker); });
 
   const wrap = document.createElement("div");
   wrap.className = "line-chart";
+  if (lines.length > 1) {
+    const legend = document.createElement("div");
+    legend.className = "chart-legend";
+    lines.forEach(function (line) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.title = "Remove " + line.name + " from the chart";
+      const swatch = document.createElement("i");
+      swatch.style.setProperty("--swatch", line.color);
+      swatch.setAttribute("aria-hidden", "true");
+      button.append(swatch, document.createTextNode(line.name));
+      button.addEventListener("click", function () { toggleShop(line.key); });
+      legend.append(button);
+    });
+    wrap.append(legend);
+  }
   const tip = document.createElement("div");
   tip.className = "line-tip";
   tip.hidden = true;
   const tipHops = document.createElement("strong");
   const tipItems = document.createElement("span");
-  const tipProfit = document.createElement("span");
-  tip.append(tipHops, tipItems, tipProfit);
+  tip.append(tipHops, tipItems);
   wrap.append(svg, tip);
 
+  const anchorSeries = lines[0].series;
   let active = -1;
+  let frozen = false;
+  function setFrozen(on) {
+    frozen = on;
+    wrap.classList.toggle("frozen", on);
+    if (on) guide.removeAttribute("stroke-dasharray");
+    else guide.setAttribute("stroke-dasharray", "3 3");
+  }
   function hide() {
+    if (frozen) return;
     active = -1;
     guide.setAttribute("visibility", "hidden");
-    marker.setAttribute("visibility", "hidden");
+    markers.forEach(function (marker) { marker.setAttribute("visibility", "hidden"); });
     tip.hidden = true;
   }
   function show(clientX) {
@@ -1440,28 +1646,50 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
     const hop = hopTo === hopFrom ? hopFrom : hopFrom + ((clamped - padL) / plotW) * (hopTo - hopFrom);
     let index = Math.round(hop) - hopFrom;
     if (index < 0) index = 0;
-    if (index > series.length - 1) index = series.length - 1;
-    const entry = series[index];
+    if (index > anchorSeries.length - 1) index = anchorSeries.length - 1;
+    const entry = anchorSeries[index];
     const px = xOf(entry.hops);
-    const py = yOf(entry.total);
     guide.setAttribute("x1", num(px));
     guide.setAttribute("x2", num(px));
-    guide.setAttribute("y1", num(py));
+    guide.setAttribute("y1", String(padT));
     guide.setAttribute("y2", String(padT + plotH));
     guide.setAttribute("visibility", "visible");
-    marker.setAttribute("cx", num(px));
-    marker.setAttribute("cy", num(py));
-    marker.setAttribute("visibility", "visible");
+    let topY = yOf(entry.total);
+    lines.forEach(function (line, lineIndex) {
+      const point = line.series[index] || line.series[line.series.length - 1];
+      const py = yOf(point.total);
+      if (py < topY) topY = py;
+      const marker = markers[lineIndex];
+      marker.setAttribute("cx", num(xOf(point.hops)));
+      marker.setAttribute("cy", num(py));
+      marker.setAttribute("visibility", "visible");
+    });
     if (active !== index) {
       active = index;
       tipHops.textContent = hopLabel(entry.hops);
       tipItems.textContent = itemsEachHop(entry);
-      tipProfit.textContent = moneyNoun(entry.total, currency);
+      while (tip.childNodes.length > 2) tip.removeChild(tip.lastChild);
+      if (lines.length === 1) {
+        const profit = document.createElement("span");
+        const point = lines[0].series[index] || lines[0].series[lines[0].series.length - 1];
+        profit.textContent = moneyNoun(point.total, lines[0].currency);
+        tip.append(profit);
+      } else {
+        lines.forEach(function (line) {
+          const point = line.series[index] || line.series[line.series.length - 1];
+          const row = document.createElement("span");
+          row.className = "tip-line";
+          const swatch = document.createElement("i");
+          swatch.style.setProperty("--swatch", line.color);
+          row.append(swatch, document.createTextNode(line.name + " · " + moneyNoun(point.total, line.currency)));
+          tip.append(row);
+        });
+      }
     }
     tip.hidden = false;
     const box = wrap.getBoundingClientRect();
     const localX = rect.left - box.left + (px / viewW) * rect.width;
-    const localY = rect.top - box.top + (py / viewH) * rect.height;
+    const localY = rect.top - box.top + (topY / viewH) * rect.height;
     const tw = tip.offsetWidth;
     const th = tip.offsetHeight;
     const margin = 8;
@@ -1485,8 +1713,19 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
     tip.style.top = top + "px";
   }
 
-  svg.addEventListener("pointermove", function (event) { show(event.clientX); });
-  svg.addEventListener("pointerdown", function (event) { show(event.clientX); });
+  svg.addEventListener("pointermove", function (event) {
+    if (frozen) return;
+    show(event.clientX);
+  });
+  svg.addEventListener("click", function (event) {
+    if (frozen) {
+      setFrozen(false);
+      show(event.clientX);
+      return;
+    }
+    show(event.clientX);
+    setFrozen(true);
+  });
   svg.addEventListener("pointerleave", function (event) {
     if (event.pointerType && event.pointerType !== "mouse") return;
     hide();
@@ -1494,29 +1733,150 @@ function renderLineChart(series, hopFrom, hopTo, currency) {
   return wrap;
 }
 
-function fillDetail(container, row) {
-  container.replaceChildren();
+function shownSelection() {
+  const selected = [];
+  openShops.forEach(function (key) {
+    const row = quotes.get(key);
+    if (row) selected.push(row);
+  });
+  return selected;
+}
+
+function applySelectionStyles() {
+  const selected = shownSelection();
+  const colorOf = new Map();
+  selected.forEach(function (row, index) {
+    colorOf.set(row.shop.key, LINE_COLORS[index % LINE_COLORS.length]);
+  });
+  shopBody.querySelectorAll("tr").forEach(function (tr) {
+    const color = colorOf.get(tr.dataset.shop) || "";
+    const on = color !== "";
+    tr.classList.toggle("selected", on);
+    tr.setAttribute("aria-selected", on ? "true" : "false");
+    if (on) tr.style.setProperty("--row-color", color);
+    else tr.style.removeProperty("--row-color");
+  });
+}
+
+function renderComparison(scroll) {
+  const selected = shownSelection();
+  shopDetail.replaceChildren();
+  if (!selected.length) {
+    shopDetail.hidden = true;
+    return;
+  }
   const heading = document.createElement("h3");
-  heading.textContent = row.shop.note ? row.shop.name + " " + row.shop.note : row.shop.name;
-  container.append(heading);
-  const series = ensureSeries(row);
-  if (!series) {
+  if (selected.length === 1) {
+    const shop = selected[0].shop;
+    heading.textContent = shop.note ? shop.name + " " + shop.note : shop.name;
+  } else {
+    heading.textContent = "Comparing " + selected.length + " shops";
+  }
+  shopDetail.append(heading);
+  const lines = [];
+  const problems = [];
+  selected.forEach(function (row, index) {
+    const series = ensureSeries(row);
+    if (!series) {
+      problems.push(row.shop.name + ": " + (row.seriesError || "That sale is too large to total exactly."));
+      return;
+    }
+    lines.push({
+      key: row.shop.key,
+      name: chartLabels.get(row.shop.key) || row.shop.name,
+      series: series,
+      currency: row.shop.currency,
+      color: LINE_COLORS[index % LINE_COLORS.length]
+    });
+  });
+  if (lines.length) shopDetail.append(renderLineChart(lines, selected[0].hopFrom, selected[0].hopTo));
+  problems.forEach(function (text) {
     const err = document.createElement("p");
-    err.textContent = row.seriesError || "That sale is too large to total exactly.";
-    container.append(err);
-  } else if (series.length) {
-    container.append(renderLineChart(series, row.hopFrom, row.hopTo, row.shop.currency));
-  }
-  if (row.quote.hitFloor) {
+    err.textContent = text;
+    shopDetail.append(err);
+  });
+  selected.forEach(function (row) {
+    if (!row.quote || !row.quote.hitFloor) return;
     const floor = document.createElement("p");
-    floor.textContent = "The 10% floor was hit at " + moneyNoun(row.quote.lower, row.shop.currency) + ".";
-    container.append(floor);
+    const where = moneyNoun(row.quote.lower, row.shop.currency);
+    floor.textContent = selected.length === 1
+      ? "The 10% floor was hit at " + where + "."
+      : row.shop.name + " hits the 10% floor at " + where + ".";
+    shopDetail.append(floor);
+  });
+  shopDetail.hidden = false;
+  if (scroll) shopDetail.scrollIntoView({ block: "nearest" });
+}
+
+function depreciationKey(row) {
+  const opts = row.priceOpts;
+  return [opts.buyPercent, opts.deltaPercent, opts.baseStock, opts.currentStock].join("\u001f");
+}
+
+function tradeKey(row) {
+  return row.rate.buy + "\u001f" + row.rate.delta;
+}
+
+function visibleShopRows() {
+  const rows = tableRows.slice().sort(compareRows);
+  if (!document.getElementById("hide-similar").checked) {
+    rows.forEach(function (row) { row.hiddenSimilar = 0; });
+    return rows;
   }
-  container.hidden = false;
+  const groups = new Map();
+  rows.forEach(function (row) {
+    const key = tradeKey(row);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  });
+  const grouped = [];
+  groups.forEach(function (group) {
+    const row = group[0];
+    row.hiddenSimilar = group.length - 1;
+    row.similarNames = group.slice(1).map(function (other) { return other.shop.name; });
+    grouped.push(row);
+  });
+  return grouped;
+}
+
+function addAllShops() {
+  const groups = new Map();
+  visibleShopRows().forEach(function (row) {
+    const key = depreciationKey(row);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  });
+  const keys = [];
+  chartLabels = new Map();
+  groups.forEach(function (group) {
+    const row = group[0];
+    keys.push(row.shop.key);
+    if (group.length > 1) chartLabels.set(row.shop.key, row.shop.name + " · " + group.length + " shops");
+  });
+  if (!keys.length) return;
+  shopChoice = true;
+  openShops = keys;
+  const wasHidden = shopDetail.hidden;
+  applySelectionStyles();
+  renderComparison(wasHidden);
+}
+
+function toggleShop(key) {
+  shopChoice = true;
+  const wasHidden = shopDetail.hidden;
+  const index = openShops.indexOf(key);
+  if (index === -1) openShops.push(key);
+  else {
+    openShops.splice(index, 1);
+    chartLabels.delete(key);
+  }
+  applySelectionStyles();
+  renderComparison(wasHidden);
 }
 
 function activeSortId() {
   if (sortKey === "hop") return "hop:" + sortHop;
+  if (sortKey === "each") return "each";
   if (sortKey === "hopTo") return "hop:" + tableHopTo;
   return sortKey;
 }
@@ -1567,16 +1927,30 @@ function headerCell(label, key, hop, note, title) {
 
 function renderHead() {
   const tr = document.createElement("tr");
-  tr.append(headerCell("Shop", "shop", 0, "", ""));
+  const shopTh = headerCell("Shop", "shop", 0, "", "");
+  shopTh.classList.add("shop-col");
+  tr.append(shopTh);
   tr.append(headerCell("Buy", "buy", 0, "", ""));
   tr.append(headerCell("Change", "change", 0, "", ""));
+  if (tableEach > 0) {
+    const eachTh = headerCell(
+      formatCoins(tableEach) + " each",
+      "each",
+      0,
+      hopLabel(tableEachHops),
+      eachHeaderTitle()
+    );
+    eachTh.classList.add("each-col");
+    tr.append(eachTh);
+  }
   tableHops.forEach(function (count) {
+    const each = tableQuantity / count;
     tr.append(headerCell(
       hopLabel(count),
       "hop",
       count,
-      "split stack",
-      "Coins for selling the whole stack in " + hopLabel(count) + ". Items are split evenly, and every hop starts from the same stock."
+      formatCoins(each) + " each",
+      "Coins for selling the whole stack in " + hopLabel(count) + ". Every hop sells " + itemNoun(each) + ", and every hop starts from the same stock."
     ));
   });
   document.getElementById("shop-head").replaceChildren(tr);
@@ -1595,6 +1969,7 @@ function compareRows(a, b) {
   else if (sortKey === "buy") diff = a.rate.buy - b.rate.buy;
   else if (sortKey === "change") diff = a.rate.delta - b.rate.delta;
   else if (sortKey === "hop") diff = spreadCoins(a, sortHop) - spreadCoins(b, sortHop);
+  else if (sortKey === "each") diff = (a.eachSale ? a.eachSale.total : 0) - (b.eachSale ? b.eachSale.total : 0);
   else diff = a.hopToCoins - b.hopToCoins;
   if (diff !== 0) return diff * sortDir;
   if (sortKey !== "change" && a.rate.delta !== b.rate.delta) return a.rate.delta - b.rate.delta;
@@ -1628,6 +2003,24 @@ function shopsForSale() {
 }
 
 function renderGeneral(shared) {
+  const eachRead = readEachHop();
+  const eachN = eachRead.error ? 0 : eachRead.value;
+  const plan = eachN > 0 ? eachPlan(shared.quantity, eachN) : null;
+  tableEach = plan ? plan.per : 0;
+  tableEachHops = plan ? plan.hops : 0;
+  tableEachFull = plan ? plan.full : 0;
+  tableEachRem = plan ? plan.rem : 0;
+  tableEachStack = plan ? shared.quantity : 0;
+  tableQuantity = shared.quantity;
+  if (pinEachSort && tableEach > 0) {
+    sortKey = "each";
+    sortDir = -1;
+  }
+  pinEachSort = false;
+  if (tableEach === 0 && sortKey === "each") {
+    sortKey = "hopTo";
+    sortDir = -1;
+  }
   const filter = document.getElementById("shop-filter").value.trim().toLowerCase();
   const rows = [];
   let overflow = "";
@@ -1655,19 +2048,29 @@ function renderGeneral(shared) {
       overflow = sale.error;
       return;
     }
+    let eachSale = null;
+    if (eachN > 0) {
+      eachSale = eachHopSale(priceOpts, shared.quantity, eachN);
+      if (eachSale.error) {
+        overflow = eachSale.error;
+        return;
+      }
+    }
     rows.push({
       shop: shop,
       rate: rate,
       quote: sale.quote,
       plan: sale.plan,
       spreads: sale.spreads,
+      eachSale: eachSale,
       total: shared.quantity,
       priceOpts: priceOpts,
       hopFrom: shared.hopFrom,
       hopTo: shared.hopTo,
       hopToCoins: (function () {
+        const target = shared.hops.length ? shared.hops[shared.hops.length - 1] : shared.hopTo;
         for (let i = 0; i < sale.spreads.length; i++) {
-          if (sale.spreads[i].hops === shared.hopTo) return sale.spreads[i].total;
+          if (sale.spreads[i].hops === target) return sale.spreads[i].total;
         }
         return 0;
       })(),
@@ -1681,7 +2084,7 @@ function renderGeneral(shared) {
   }
   tableRows = rows;
   tableHops = shared.hops.slice().reverse();
-  tableHopTo = shared.hopTo;
+  tableHopTo = tableHops.length ? tableHops[0] : shared.hopTo;
   if (sortKey === "hop" && tableHops.indexOf(sortHop) === -1) {
     sortKey = "hopTo";
     sortDir = -1;
@@ -1690,7 +2093,28 @@ function renderGeneral(shared) {
 }
 
 function paintTable(resetSelection) {
-  const rows = tableRows.slice().sort(compareRows);
+  const rows = visibleShopRows();
+  if (document.getElementById("hide-similar").checked && shopChoice) {
+    const visibleKeys = new Set(rows.map(function (row) { return row.shop.key; }));
+    const representative = new Map();
+    rows.forEach(function (row) { representative.set(tradeKey(row), row.shop.key); });
+    const byKey = new Map();
+    tableRows.forEach(function (row) { byKey.set(row.shop.key, row); });
+    const next = [];
+    const seen = new Set();
+    openShops.forEach(function (key) {
+      let keep = key;
+      if (!visibleKeys.has(key)) {
+        const row = byKey.get(key);
+        keep = row ? representative.get(tradeKey(row)) : null;
+      }
+      if (keep && visibleKeys.has(keep) && !seen.has(keep)) {
+        seen.add(keep);
+        next.push(keep);
+      }
+    });
+    openShops = next;
+  }
   let bestCoins = -1;
   rows.forEach(function (row) {
     if (row.hopToCoins > bestCoins) bestCoins = row.hopToCoins;
@@ -1708,27 +2132,27 @@ function paintTable(resetSelection) {
       bestDelta = row.rate.delta;
     }
   });
-  const previous = openShop;
-  const stillVisible = rows.some(function (row) { return row.shop.key === previous; });
-  if (resetSelection || !stillVisible) openShop = bestKey;
+  if (!shopChoice) {
+    openShops = bestKey ? [bestKey] : [];
+    chartLabels = new Map();
+  }
   quotes = new Map();
   renderHead();
   shopBody.replaceChildren();
   rows.forEach(function (row) {
     quotes.set(row.shop.key, row);
     const tr = document.createElement("tr");
-    tr.className = row.shop.key === openShop ? "selected" : "";
     tr.tabIndex = 0;
     tr.dataset.shop = row.shop.key;
-    tr.setAttribute("aria-selected", row.shop.key === openShop ? "true" : "false");
-    tr.addEventListener("click", function () { selectShop(row.shop.key, true); });
+    tr.addEventListener("click", function () { toggleShop(row.shop.key); });
     tr.addEventListener("keydown", function (event) {
       if (event.target.closest("a")) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      selectShop(row.shop.key, true);
+      toggleShop(row.shop.key);
     });
     const nameTd = document.createElement("td");
+    nameTd.classList.add("shop-col");
     const nameBtn = document.createElement("a");
     nameBtn.className = "shop-name";
     nameBtn.href = shopUrl(row.shop);
@@ -1738,6 +2162,15 @@ function paintTable(resetSelection) {
     nameBtn.title = "Wiki page for " + row.shop.name;
     nameBtn.addEventListener("click", function (event) { event.stopPropagation(); });
     nameTd.append(nameBtn);
+    if (row.hiddenSimilar > 0) {
+      const similar = document.createElement("span");
+      similar.className = "floor-flag";
+      similar.textContent = row.hiddenSimilar === 1
+        ? "1 similar shop hidden"
+        : formatCoins(row.hiddenSimilar) + " similar shops hidden";
+      similar.title = row.similarNames.join(", ");
+      nameTd.append(similar);
+    }
     if (row.shop.listed) {
       const stockFlag = document.createElement("span");
       stockFlag.className = "floor-flag";
@@ -1757,19 +2190,26 @@ function paintTable(resetSelection) {
     tr.append(nameTd);
     addCell(tr, formatPercent(row.rate.buy) + (row.rate.gloves ? " gloves" : ""));
     addCell(tr, formatPercent(row.rate.delta));
+    if (row.eachSale) {
+      const eachTd = document.createElement("td");
+      eachTd.className = "advice each-col";
+      const eachMain = document.createElement("span");
+      eachMain.textContent = formatCoins(row.eachSale.total);
+      const eachSub = document.createElement("span");
+      eachSub.className = "advice-coins";
+      eachSub.textContent = hopLabel(row.eachSale.hops);
+      eachTd.title = eachCellTitle(row.eachSale, row.shop.currency);
+      eachTd.append(eachMain, eachSub);
+      tr.append(eachTd);
+    }
     tableHops.forEach(function (count) {
       const spread = row.spreads.find(function (item) { return item.hops === count; });
       addSplitCell(tr, spread);
     });
     shopBody.append(tr);
   });
-  if (openShop && quotes.has(openShop)) {
-    if (resetSelection || openShop !== previous || shopDetail.hidden) selectShop(openShop, false);
-  } else {
-    openShop = null;
-    shopDetail.hidden = true;
-    shopDetail.replaceChildren();
-  }
+  applySelectionStyles();
+  if (resetSelection || shopDetail.hidden) renderComparison(false);
 }
 
 function addCell(tr, text) {
@@ -1778,22 +2218,11 @@ function addCell(tr, text) {
   tr.append(td);
 }
 
-function selectShop(key, scroll) {
-  const row = quotes.get(key);
-  if (!row) return;
-  openShop = key;
-  shopBody.querySelectorAll("tr").forEach(function (tr) {
-    const on = tr.dataset.shop === key;
-    tr.classList.toggle("selected", on);
-    tr.setAttribute("aria-selected", on ? "true" : "false");
-  });
-  fillDetail(shopDetail, row);
-  if (scroll) shopDetail.scrollIntoView({ block: "nearest" });
-}
-
 function updateAll() {
+  syncHopSliders();
   renderPicked();
   updateShopStatus();
+  syncEachError();
   const shared = readShared();
   if (shared.empty) {
     formError.textContent = "";
@@ -1853,6 +2282,8 @@ searchInput.addEventListener("input", function () {
   if (!selected || searchInput.value !== selected.name) {
     if (selected || shopListingState !== "idle") clearShopLookup();
     selected = null;
+    shopChoice = false;
+    openShops = [];
   }
   activeIndex = -1;
   renderResults();
@@ -1885,14 +2316,25 @@ document.addEventListener("mousedown", function (event) {
   }
 });
 document.getElementById("reload").addEventListener("click", loadCatalog);
-["quantity", "hops-from", "hops-to", "stock", "item-value", "shop-filter"].forEach(function (id) {
+["quantity", "hops-from", "hops-to", "stock", "item-value", "shop-filter", "each-hop"].forEach(function (id) {
   document.getElementById(id).addEventListener("input", function () {
     if (id === "quantity") {
       quantityStillOpening = false;
       document.getElementById("hops-to").value = document.getElementById("quantity").value;
     }
+    if (id === "each-hop") pinEachSort = true;
+    syncHopSliders();
     scheduleUpdate();
   });
+});
+["hops-from", "hops-to"].forEach(function (id) {
+  document.getElementById(id + "-slider").addEventListener("input", function () {
+    applyHopSlider(id);
+  });
+});
+document.getElementById("add-all-shops").addEventListener("click", addAllShops);
+document.getElementById("hide-similar").addEventListener("change", function () {
+  paintTable(true);
 });
 document.querySelectorAll("[data-gloves]").forEach(function (button) {
   button.addEventListener("click", function () {
